@@ -2,6 +2,7 @@ const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { Innertube, UniversalCache } = require("youtubei.js");
+const { existsSync, mkdirSync, createWriteStream, unlinkSync } = require("fs");
 
 const ytdlpPath = path.join(__dirname, "../bin/yt-dlp");
 const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
@@ -87,43 +88,80 @@ async function ytvdl(input) {
 }
 
 async function ytadlV2(input) {
-  const yt = await Innertube.create();
+  const yt = await Innertube.create({
+    cache: new UniversalCache(false),
+    generate_session_locally: true,
+  });
+
   const url = getVideoUrl(input);
-  const streamInfo = await yt.getBasicInfo(url);
+  const stream = await yt.download(url, {
+    type: "audio",
+    quality: "best",
+    format: "m4a",
+    client: "YTMUSIC",
+  });
 
-  const audioStream = streamInfo.streaming_data.adaptive_formats.find(
-    (format) => format.mime_type.includes("audio/mp4")
-  );
+  const tempFile = path.join(tempPath, generateRandomName("m4a"));
 
-  if (!audioStream) throw new Error("No audio stream found!");
+  if (!existsSync(tempPath)) {
+    mkdirSync(tempPath);
+  }
 
-  const output = path.join(tempPath, generateRandomName("m4a"));
-  const audioStreamUrl = audioStream.url;
+  const file = createWriteStream(tempFile);
+  for await (const chunk of Utils.streamToIterable(stream)) {
+    file.write(chunk);
+  }
+  file.end();
 
-  const audioResponse = await fetch(audioStreamUrl);
-  const buffer = Buffer.from(await audioResponse.arrayBuffer());
+  return new Promise((resolve, reject) => {
+    file.on("finish", () => {
+      const buffer = require("fs").readFileSync(tempFile);
+      unlinkSync(tempFile);
+      resolve(buffer);
+    });
 
-  return buffer;
+    file.on("error", (err) => {
+      reject(`Error writing file: ${err.message}`);
+    });
+  });
 }
 
 async function ytvdlV2(input) {
-  const yt = await Innertube.create();
+  const yt = await Innertube.create({
+    cache: new UniversalCache(false),
+    generate_session_locally: true,
+  });
+
   const url = getVideoUrl(input);
-  const streamInfo = await yt.getBasicInfo(url);
+  const stream = await yt.download(url, {
+    type: "video+audio",
+    quality: "480p",
+    format: "mp4",
+    client: "YOUTUBE",
+  });
 
-  const videoStream = streamInfo.streaming_data.adaptive_formats.find(
-    (format) => format.mime_type.includes("video/mp4") && format.quality_label === "720p"
-  );
+  const tempFile = path.join(tempPath, generateRandomName("mp4"));
 
-  if (!videoStream) throw new Error("No video stream found!");
+  if (!existsSync(tempPath)) {
+    mkdirSync(tempPath);
+  }
 
-  const output = path.join(tempPath, generateRandomName("mp4"));
-  const videoStreamUrl = videoStream.url;
+  const file = createWriteStream(tempFile);
+  for await (const chunk of Utils.streamToIterable(stream)) {
+    file.write(chunk);
+  }
+  file.end();
 
-  const videoResponse = await fetch(videoStreamUrl);
-  const buffer = Buffer.from(await videoResponse.arrayBuffer());
-
-  return buffer;
+  return new Promise((resolve, reject) => {
+    file.on("finish", () => {
+      const buffer = fs.readFileSync(tempFile);
+      unlinkSync(tempFile);
+      resolve(buffer);
+    });
+    file.on("error", (err) => {
+      reject(`Error writing file: ${err.message}`);
+    });
+  });
 }
 
 async function yts(query) {
