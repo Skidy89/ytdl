@@ -46,7 +46,7 @@ async function processOutput(args, tempFile) {
   await ensureExecutable(ytdlpPath);
 
   return new Promise((resolve, reject) => {
-    execFile("python", [ytDlpPath, ...args], (err, stdout, stderr) => {
+    execFile("python", [ytdlpPath, ...args], (err, stdout, stderr) => {
       if (err) {
         reject(`yt-dlp error: ${stderr || err.message}`);
       } else {
