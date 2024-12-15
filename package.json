@@ -1,6 +1,6 @@
 {
   "name": "@hiudyy/ytdl",
-  "version": "0.0.5-betatest",
+  "version": "0.0.5-beta.1",
   "description": "Youtube Audio/Video Downloader.",
   "main": "src/index.js",
   "scripts": {
