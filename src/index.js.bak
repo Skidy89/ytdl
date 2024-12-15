@@ -15,7 +15,7 @@ function generateRandomName(extension) {
 }
 
 function getVideoUrl(input) {
-  return input.startsWith("http") ? `https://www.youtube.com/watch?v=${input.split('?')[0].split('/').pop()}` : `https://www.youtube.com/watch?v=${input}`;
+  return input.startsWith("http") ? input : `https://www.youtube.com/watch?v=${input}`;
 }
 
 function ensureExecutable(filePath) {
