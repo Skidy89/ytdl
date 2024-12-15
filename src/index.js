@@ -101,7 +101,6 @@ async function ytadlV2(input) {
     type: "audio",
     quality: "best",
     format: "m4a",
-    client: "YOUTUBE",
   });
 
   const tempFile = path.join(tempPath, generateRandomName("m4a"));
@@ -143,7 +142,6 @@ async function ytvdlV2(input) {
     type: "video+audio",
     quality: "480p",
     format: "mp4",
-    client: "YOUTUBE",
   });
 
   const tempFile = path.join(tempPath, generateRandomName("mp4"));
