@@ -21,7 +21,8 @@
   "dependencies": {
     "child_process": "^1.0.2",
     "path": "^0.12.7",
-    "youtubei.js": "github:LuanRT/YouTube.js"
+    "youtubei.js": "github:LuanRT/YouTube.js",
+    "@distube/ytdl-core": "github:distubejs/ytdl-core"
   },
   "devDependencies": {
     "typescript": "^5.7.2"
