@@ -7,7 +7,7 @@ const { existsSync, mkdirSync, createWriteStream, unlinkSync } = require("fs");
 
 const ytdlpPath = path.join(__dirname, "../bin/yt-dlp");
 const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
-const cookiesPath2 = path.join(__dirname, "../bin/cookies.json");
+const cookiesPath2 = path.join(__dirname, "../bin/cookies.txt");
 const cookiesJson = JSON.parse(fs.readFileSync(cookiesPath2, 'utf-8'))
 const tempPath = path.join(__dirname, "../temp");
 const formattedCookies = cookiesJson.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
