@@ -92,6 +92,7 @@ async function ytadlV2(input) {
     cache: new UniversalCache(false),
     generate_session_locally: true,
     cookies: fs.readFileSync(cookiesPath, 'utf-8'),
+    client: "YOUTUBE",
 });
 
   const url = input.startsWith("http") ? `${input.split('?')[0].split('/').pop()}` : `${input}`;
@@ -100,7 +101,7 @@ async function ytadlV2(input) {
     type: "audio",
     quality: "best",
     format: "m4a",
-    client: "YTMUSIC",
+    client: "YOUTUBE",
   });
 
   const tempFile = path.join(tempPath, generateRandomName("m4a"));
@@ -133,6 +134,7 @@ async function ytvdlV2(input) {
     cache: new UniversalCache(false),
     generate_session_locally: true,
     cookies: fs.readFileSync(cookiesPath, 'utf-8'),
+    client: "YOUTUBE",
   });
 
   const url = input.startsWith("http") ? `${input.split('?')[0].split('/').pop()}` : `${input}`;
