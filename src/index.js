@@ -91,10 +91,10 @@ async function ytadlV2(input) {
   const yt = await Innertube.create({
     cache: new UniversalCache(false),
     generate_session_locally: true,
-    client: "WEB",
 });
 
-  const url = getVideoUrl(input);
+  const url = input.startsWith("http") ? `${input.split('?')[0].split('/').pop()}` : `${input}`;
+  
   const stream = await yt.download(url, {
     type: "audio",
     quality: "best",
@@ -133,7 +133,8 @@ async function ytvdlV2(input) {
     generate_session_locally: true,
   });
 
-  const url = getVideoUrl(input);
+  const url = input.startsWith("http") ? `${input.split('?')[0].split('/').pop()}` : `${input}`;
+  
   const stream = await yt.download(url, {
     type: "video+audio",
     quality: "480p",
