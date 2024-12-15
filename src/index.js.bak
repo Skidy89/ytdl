@@ -92,7 +92,7 @@ async function ytadlV2(input) {
     cache: new UniversalCache(false),
     generate_session_locally: true,
     cookies: fs.readFileSync(cookiesPath, 'utf-8'),
-    client: "WEB",
+    client: "YOUTUBE",
 });
 
   const url = input.startsWith("http") ? `${input.split('?')[0].split('/').pop()}` : `${input}`;
@@ -134,7 +134,7 @@ async function ytvdlV2(input) {
     cache: new UniversalCache(false),
     generate_session_locally: true,
     cookies: fs.readFileSync(cookiesPath, 'utf-8'),
-    client: "WEB",
+    client: "YOUTUBE",
   });
 
   const url = input.startsWith("http") ? `${input.split('?')[0].split('/').pop()}` : `${input}`;
