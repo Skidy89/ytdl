@@ -22,8 +22,42 @@ function generateRandomName(extension) {
   return `${timestamp}_${random}.${extension}`;
 }
 
-function getVideoUrl(input) {
-  return input.startsWith("http") ? `https://www.youtube.com/watch?v=${input.split('?')[0].split('/').pop()}` : `https://www.youtube.com/watch?v=${input}`;
+function getYouTubeID(input) {
+  if (!input) return null;
+  try {
+    const url = new URL(input)
+    const validDomains = [
+      'youtube.com',
+      'www.youtube.com',
+      'm.youtube.com',
+      'youtu.be',
+      'youtube.co'
+    ];
+    if (!validDomains.some(domain => url.hostname.endsWith(domain))) {
+      return input;
+    }
+    if (url.hostname === 'youtu.be') {
+      return url.pathname.substring(1);
+    }
+    if (url.hostname.includes('youtube.com')) {
+      if (url.pathname.startsWith('/shorts/')) {
+        return url.pathname.split('/')[2];
+      } else if (url.searchParams.has('v')) {
+        return url.searchParams.get('v');
+      } else if (url.pathname === '/watch') {
+        return null;
+      } else if (url.pathname.startsWith('/channel/')) {
+        return null;
+      } else if (url.pathname.startsWith('/user/')) {
+        return null;
+      } else if (url.pathname.startsWith('/playlist') && url.searchParams.has('list')) {
+        return url.searchParams.get('list');
+      }
+    }
+  } catch {
+    return input;
+  }
+  return input;
 }
 
 function ensureExecutable(filePath) {
@@ -46,24 +80,40 @@ async function processOutput(args, tempFile) {
   await ensureExecutable(ytdlpPath);
 
   return new Promise((resolve, reject) => {
-    execFile("python", [ytdlpPath, ...args], (err, stdout, stderr) => {
+    execFile(ytdlpPath, args, (err, stdout, stderr) => {
       if (err) {
-        reject(`yt-dlp error: ${stderr || err.message}`);
-      } else {
-        fs.readFile(tempFile, (readErr, buffer) => {
-          if (readErr) {
-            reject(`Error reading file: ${readErr.message}`);
+        console.log("Erro ao executar diretamente, tentando com 'python'...");
+        execFile("python", [ytdlpPath, ...args], (pythonErr, pythonStdout, pythonStderr) => {
+          if (pythonErr) {
+            reject(`yt-dlp error: ${pythonStderr || pythonErr.message}`);
           } else {
-            fs.unlink(tempFile, (unlinkErr) => {
-              if (unlinkErr) console.error(`Error deleting file: ${unlinkErr.message}`);
-            });
-            resolve(buffer);
+            handleFile(tempFile, resolve, reject);
           }
         });
+      } else {
+        handleFile(tempFile, resolve, reject);
       }
     });
   });
 }
+
+function handleFile(tempFile, resolve, reject) {
+  fs.readFile(tempFile, (readErr, buffer) => {
+    if (readErr) {
+      reject(`Error reading file: ${readErr.message}`);
+    } else {
+      fs.unlink(tempFile, (unlinkErr) => {
+        if (unlinkErr) console.error(`Error deleting file: ${unlinkErr.message}`);
+      });
+      resolve(buffer);
+    }
+  });
+}
+
+function getVideoUrl(ajsjj) {
+const idzz = getYouTubeID(ajsjj) ;
+return `https://www.youtube.com/watch?v=${idzz}`;
+};
 
 async function ytadl(input) {
   const url = getVideoUrl(input);
