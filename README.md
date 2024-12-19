@@ -7,12 +7,14 @@ Um módulo simples e eficiente para baixar vídeos e áudios do YouTube, e de v�
 
 ## Instalação
 
-Para instalar o módulo, use o gerenciador de pacotes npm:
+Para instalar o módulo, use o gerenciador de pacotes npm ou yarn:
 
 ```bash
 npm install @hiudyy/ytdl
 ```
-
+```bash
+yarn add @hiudyy/ytdl
+```
 
 ---
 
