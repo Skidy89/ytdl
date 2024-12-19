@@ -24,6 +24,7 @@ Importando o módulo
 
 ```javascript
 const { yts, ytmp4, ytmp3, alldl } = require("@hiudyy/ytdl");
+//import { yts, ytmp4, ytmp3, alldl } from '@hiudyy/ytdl';
 ```
 
 
@@ -37,6 +38,7 @@ Use esta função para buscar informações sobre uma música no YouTube.
 
 ```javascript
 const { yts } = require("@hiudyy/ytdl");
+//import { yts } from '@hiudyy/ytdl';
 
 (async () => {
     const query = "Bon Jovi - It's My Life";
@@ -94,6 +96,7 @@ Esta função baixa o vídeo de um link do YouTube.
 
 ```javascript
 const { ytmp4 } = require("@hiudyy/ytdl");
+//import { ytmp4 } from '@hiudyy/ytdl';
 
 (async () => {
     const url = "https://www.youtube.com/watch?v=vx2u5uUu3DE";
@@ -112,6 +115,7 @@ Esta função baixa apenas o áudio de um vídeo do YouTube.
 
 ```javascript
 const { ytmp3 } = require("@hiudyy/ytdl");
+//import { ytmp3 } from '@hiudyy/ytdl';
 
 (async () => {
     const url = "https://www.youtube.com/watch?v=vx2u5uUu3DE";
@@ -130,6 +134,7 @@ Esta função baixa áudios, vídeos, imagens ou documentos da maioria dos sites
 
 ```javascript
 const { alldl } = require("@hiudyy/ytdl");
+//import { alldl } from '@hiudyy/ytdl';
 
 (async () => {
     const url = "https://vm.tiktok.com/ZMkNpBFjX/"
