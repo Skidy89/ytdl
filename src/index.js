@@ -206,7 +206,7 @@ async function alldl(input) {
     // Adicionar download de áudio
     if (hasAudio) {
       downloadArgsList.push([
-        "-f", "bestaudio",
+        "-f", "bestaudio[ext=m4a]",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",

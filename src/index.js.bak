@@ -185,17 +185,18 @@ async function alldl(input) {
       });
     });
 
-    // Determinar os formatos disponíveis
-    const hasAudio = formats.includes("audio");
-    const hasVideo = formats.includes("video");
-    const hasImages = formats.includes("image");
+    // Verificar formatos disponíveis
+    const hasAudio = /audio only/.test(formats);
+    const hasVideo = /video only/.test(formats);
+    const hasImages = /\.(jpg|png|webp)/i.test(url);
 
     const downloadArgsList = [];
 
     // Adicionar download de vídeo
-    if (hasVideo) {
+    if (hasVideo || !hasAudio) {
       downloadArgsList.push([
         "-f", "bestvideo+bestaudio/best",
+        "--merge-output-format", "mp4",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
@@ -206,13 +207,14 @@ async function alldl(input) {
     if (hasAudio) {
       downloadArgsList.push([
         "-f", "bestaudio",
+        "--merge-output-format", "m4a",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
       ]);
     }
 
-    // Adicionar download de imagens (para carrosséis)
+    // Adicionar download de imagens
     if (hasImages) {
       downloadArgsList.push([
         "-f", "best",
@@ -242,13 +244,13 @@ async function alldl(input) {
       let type = "";
       let mimetype = "";
 
-      if ([".mp4", ".mkv", ".webm", ".avi", ".mov"].includes(extension)) {
+      if ([".mp4", ".mkv", ".webm"].includes(extension)) {
         type = "video";
         mimetype = `video/mp4`;
-      } else if ([".mp3", ".m4a", ".aac", ".opus"].includes(extension)) {
+      } else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
         type = "audio";
-        mimetype = `audio/mp4`;
-      } else if ([".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(extension)) {
+        mimetype = `audio/mpeg`;
+      } else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
         type = "image";
         mimetype = `image/${extension.replace(".", "")}`;
       } else {
