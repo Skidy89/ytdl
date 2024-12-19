@@ -128,7 +128,6 @@ async function alldl(input) {
   const url = input.startsWith("http") ? input : getVideoUrl(input);
   const results = [];
   const tempFiles = [
-    { type: "audio", ext: "m4a", format: "bestaudio[ext=m4a]" },
     { type: "video", ext: "mp4", format: "bestvideo+bestaudio[ext=mp4]/mp4" },
     { type: "image", ext: "jpg", format: "best[ext=jpg]" },
   ];
