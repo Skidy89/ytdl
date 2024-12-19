@@ -200,14 +200,14 @@ async function alldl(input) {
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
+        "--yes-playlist",
       ]);
     }
 
     // Adicionar download de áudio
     if (hasAudio) {
       downloadArgsList.push([
-        "-f", "bestaudio",
-        "--merge-output-format", "m4a",
+        "-f", "bestaudio[ext=m4a]",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
