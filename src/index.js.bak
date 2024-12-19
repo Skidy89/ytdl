@@ -55,10 +55,11 @@ function getYouTubeID(input) {
   return input;
 }
 
-async function ensureExecutable(filePath) {
+function ensureExecutable(filePath) {
   return new Promise((resolve, reject) => {
     fs.access(filePath, fs.constants.X_OK, (err) => {
       if (err) {
+        console.warn(`Corrigindo permissões para ${filePath}`);
         execFile("chmod", ["+x", filePath], (chmodErr) => {
           if (chmodErr) reject(`Erro ao corrigir permissões: ${chmodErr.message}`);
           else resolve();
@@ -75,31 +76,46 @@ async function processOutput(args, tempFile) {
 
   return new Promise((resolve, reject) => {
     execFile(ytdlpPath, args, (err, stdout, stderr) => {
-      if (err) reject(`yt-dlp error: ${stderr || err.message}`);
-      else {
-        fs.readFile(tempFile, (readErr, buffer) => {
-          if (readErr) reject(`Error reading file: ${readErr.message}`);
-          else {
-            fs.unlink(tempFile, () => {});
-            resolve(buffer);
+      if (err) {
+        console.log("Erro ao executar diretamente, tentando com 'python'...");
+        execFile("python", [ytdlpPath, ...args], (pythonErr, pythonStdout, pythonStderr) => {
+          if (pythonErr) {
+            reject(`yt-dlp error: ${pythonStderr || pythonErr.message}`);
+          } else {
+            handleFile(tempFile, resolve, reject);
           }
         });
+      } else {
+        handleFile(tempFile, resolve, reject);
       }
     });
   });
 }
 
-function getVideoUrl(input) {
-  const id = getYouTubeID(input);
-  return `https://www.youtube.com/watch?v=${id}`;
+function handleFile(tempFile, resolve, reject) {
+  fs.readFile(tempFile, (readErr, buffer) => {
+    if (readErr) {
+      reject(`Error reading file: ${readErr.message}`);
+    } else {
+      fs.unlink(tempFile, (unlinkErr) => {
+        if (unlinkErr) console.error(`Error deleting file: ${unlinkErr.message}`);
+      });
+      resolve(buffer);
+    }
+  });
 }
+
+function getVideoUrl(ajsjj) {
+const idzz = getYouTubeID(ajsjj) ;
+return `https://www.youtube.com/watch?v=${idzz}`;
+};
 
 async function ytmp3(input) {
   const url = getVideoUrl(input);
-  const output = path.join(tempPath, generateRandomName("mp3"));
+  const output = path.join(tempPath, generateRandomName("m4a"));
   const args = [
     "-f",
-    "bestaudio[ext=mp3]/mp3",
+    "bestaudio[ext=m4a]",
     "--cookies",
     cookiesPath,
     "-o",

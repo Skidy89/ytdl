@@ -168,34 +168,70 @@ async function alldl(input) {
   const url = input.startsWith("http") ? input : getVideoUrl(input);
   const results = [];
   const outputTemplate = path.join(tempPath, "%(title)s_%(id)s.%(ext)s");
-  const args = [
-    "-f", "bestvideo+bestaudio/best",
-    "--cookies", cookiesPath,
-    "--output", outputTemplate,
-    "--no-warnings",
-    "--yes-playlist",
-    url,
-  ];
-
   try {
     await ensureExecutable(ytdlpPath);
-    await new Promise((resolve, reject) => {
-      execFile(ytdlpPath, args, (error, stdout) => {
+    const formatArgs = [
+      "-F",
+      "--cookies", cookiesPath,
+      url,
+    ];
+    const formats = await new Promise((resolve, reject) => {
+      execFile(ytdlpPath, formatArgs, (error, stdout) => {
         if (error) return reject(error);
         resolve(stdout.trim());
       });
     });
+    const hasAudio = formats.includes("audio only");
+    const hasVideo = formats.includes("video only");
+    const downloadArgsList = [];
+    if (hasVideo && hasAudio) {
+      downloadArgsList.push([
+        "-f", "bestvideo+bestaudio",
+        "--cookies", cookiesPath,
+        "--output", outputTemplate,
+        "--no-warnings",
+      ]);
+    }
+    if (hasAudio) {
+      downloadArgsList.push([
+        "-f", "bestaudio",
+        "--cookies", cookiesPath,
+        "--output", outputTemplate,
+        "--no-warnings",
+      ]);
+    }
+    for (const args of downloadArgsList) {
+      await new Promise((resolve, reject) => {
+        execFile(ytdlpPath, args.concat(url), (error, stdout) => {
+          if (error) return reject(error);
+          resolve(stdout.trim());
+        });
+      });
+    }
     const files = fs.readdirSync(tempPath);
     for (const file of files) {
       const filePath = path.join(tempPath, file);
       const buffer = fs.readFileSync(filePath);
-      const type = file.endsWith(".mp4") ? "video" : "image";
-      results.push({ type, src: buffer });
+      const extension = path.extname(file).toLowerCase();
+      let type = "";
+      let mimetype = "";
+      if ([".mp4", ".mkv", ".webm", ".avi", ".mov"].includes(extension)) {
+        type = "video";
+        mimetype = `video/${extension.replace(".", "")}`;
+      } else if ([".mp3", ".m4a", ".aac", ".opus"].includes(extension)) {
+        type = "audio";
+        mimetype = `audio/${extension.replace(".", "")}`;
+      } else {
+        type = "unknown";
+        mimetype = "application/octet-stream";
+      }
+      results.push({ type, src: buffer, mimetype });
       fs.unlinkSync(filePath);
     }
   } catch (error) {
     console.error(`Erro ao baixar mídia: ${error.message}`);
   }
+
   return results;
 }
 
