@@ -145,26 +145,26 @@ Quando você usa a função **alldl**, a estrutura básica da resposta é:
 
 ```json
 [
- {
-  "type": "video",
-  "src": "buffer.......",
-  "mimetype": "video/mp4"
- },
- {
-  "type": "audio",
-  "src": "buffer.......",
-  "mimetype": "audio/mp4"
- },
- {
-  "type": "image",
-  "src": "buffer.......",
-  "mimetype": "image/jpg"
- },
- {
-  "type": "document",
-  "src": "buffer.......",
-  "mimetype": "application/zip"
- }
+  {
+    "type": "video",
+    "src": "<Buffer>",
+    "mimetype": "video/mp4"
+  },
+  {
+    "type": "audio",
+    "src": "<Buffer>",
+    "mimetype": "audio/mp4"
+  },
+  {
+    "type": "image",
+    "src": "<Buffer>",
+    "mimetype": "image/jpg"
+  },
+  {
+    "type": "document",
+    "src": "<Buffer>",
+    "mimetype": "application/zip"
+  }
 ]
 ```
 
