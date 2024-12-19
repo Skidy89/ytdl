@@ -186,7 +186,7 @@ async function alldl(input) {
     const downloadArgsList = [];
     if (hasVideo && hasAudio) {
       downloadArgsList.push([
-        "-f", "bestvideo+bestaudio",
+        "-f", "bestvideo+bestaudio[ext=mp4]/mp4",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
@@ -194,7 +194,7 @@ async function alldl(input) {
     }
     if (hasAudio) {
       downloadArgsList.push([
-        "-f", "bestaudio",
+        "-f", "bestaudio[ext=m4a]",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
