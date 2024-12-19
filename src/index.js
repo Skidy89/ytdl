@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { Innertube, UniversalCache } = require("youtubei.js");
 
-const ytdlpPath = path.join(__dirname, "../bin/yt-dlp");
+const HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
 const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
 const cookiesPath2 = path.join(__dirname, "../bin/cookies.json");
 const cookiesJson = JSON.parse(fs.readFileSync(cookiesPath2, 'utf-8'));
@@ -72,15 +72,15 @@ function ensureExecutable(filePath) {
 }
 
 async function processOutput(args, tempFile) {
-  await ensureExecutable(ytdlpPath);
+  await ensureExecutable(HiudyyDLPath);
 
   return new Promise((resolve, reject) => {
-    execFile(ytdlpPath, args, (err, stdout, stderr) => {
+    execFile(HiudyyDLPath, args, (err, stdout, stderr) => {
       if (err) {
         console.log("Erro ao executar diretamente, tentando com 'python'...");
-        execFile("python", [ytdlpPath, ...args], (pythonErr, pythonStdout, pythonStderr) => {
+        execFile("python", [HiudyyDLPath, ...args], (pythonErr, pythonStdout, pythonStderr) => {
           if (pythonErr) {
-            reject(`yt-dlp error: ${pythonStderr || pythonErr.message}`);
+            reject(`Hiudyydl error: ${pythonStderr || pythonErr.message}`);
           } else {
             handleFile(tempFile, resolve, reject);
           }
@@ -170,29 +170,26 @@ async function alldl(input) {
   const outputTemplate = path.join(tempPath, "%(title)s_%(id)s.%(ext)s");
 
   try {
-    await ensureExecutable(ytdlpPath);
+    await ensureExecutable(HiudyyDLPath);
 
-    // Identificar formatos disponíveis
     const formatArgs = [
       "-F",
       "--cookies", cookiesPath,
       url,
     ];
     const formats = await new Promise((resolve, reject) => {
-      execFile(ytdlpPath, formatArgs, (error, stdout) => {
+      execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
         if (error) return reject(error);
         resolve(stdout.trim());
       });
     });
 
-    // Verificar formatos disponíveis
     const hasAudio = /audio only/.test(formats);
     const hasVideo = /video only/.test(formats);
     const hasImages = /\.(jpg|png|webp)/i.test(url);
 
     const downloadArgsList = [];
 
-    // Adicionar download de vídeo
     if (hasVideo || !hasAudio) {
       downloadArgsList.push([
         "-f", "bestvideo+bestaudio/best",
@@ -203,7 +200,6 @@ async function alldl(input) {
       ]);
     }
 
-    // Adicionar download de áudio
     if (hasAudio) {
       downloadArgsList.push([
         "-f", "bestaudio[ext=m4a]",
@@ -213,7 +209,6 @@ async function alldl(input) {
       ]);
     }
 
-    // Adicionar download de imagens
     if (hasImages) {
       downloadArgsList.push([
         "-f", "best",
@@ -224,17 +219,15 @@ async function alldl(input) {
       ]);
     }
 
-    // Executar cada tipo de download
     for (const args of downloadArgsList) {
       await new Promise((resolve, reject) => {
-        execFile(ytdlpPath, args.concat(url), (error, stdout) => {
+        execFile(HiudyyDLPath, args.concat(url), (error, stdout) => {
           if (error) return reject(error);
           resolve(stdout.trim());
         });
       });
     }
 
-    // Processar os arquivos baixados
     const files = fs.readdirSync(tempPath);
     for (const file of files) {
       const filePath = path.join(tempPath, file);
@@ -251,12 +244,32 @@ async function alldl(input) {
         mimetype = `audio/mpeg`;
       } else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
         type = "image";
-        mimetype = `image/${extension.replace(".", "")}`;
-      } else {
-        type = "unknown";
-        mimetype = "application/octet-stream";
-      }
-
+        mimetype = `image/jpg`;
+      } else if ([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".ppt", ".pptx"].includes(extension)) {
+  type = "document";
+  if (extension === ".pdf") {
+    mimetype = "application/pdf";
+  } else if (extension === ".doc" || extension === ".docx") {
+    mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  } else if (extension === ".xls" || extension === ".xlsx") {
+    mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  } else if (extension === ".txt") {
+    mimetype = "text/plain";
+  } else if (extension === ".ppt" || extension === ".pptx") {
+    mimetype = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+  } else {
+    mimetype = `application/msword`;
+  }
+} else if ([".zip"].includes(extension)) {
+  type = "document";
+  mimetype = "application/zip";
+} else if ([".apk"].includes(extension)) {
+  type = "document";
+  mimetype = "application/vnd.android.package-archive";
+} else {
+  type = "unknown";
+  mimetype = "application/octet-stream";
+}
       results.push({ type, src: buffer, mimetype });
       fs.unlinkSync(filePath);
     }
