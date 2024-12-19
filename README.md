@@ -124,7 +124,7 @@ const { ytmp3 } = require("@hiudyy/ytdl");
 
 _4. Baixar audios/videos de outros sites (**alldl**)_ 
 
-Esta função baixa áudios, vídeos ou imagens da maioria dos sites disponiveis na web
+Esta função baixa áudios, vídeos, imagens ou documentos da maioria dos sites disponiveis na web
 
 ```javascript
 const { alldl } = require("@hiudyy/ytdl");
