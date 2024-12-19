@@ -168,8 +168,11 @@ async function alldl(input) {
   const url = input.startsWith("http") ? input : getVideoUrl(input);
   const results = [];
   const outputTemplate = path.join(tempPath, "%(title)s_%(id)s.%(ext)s");
+
   try {
     await ensureExecutable(ytdlpPath);
+
+    // Identificar formatos disponíveis
     const formatArgs = [
       "-F",
       "--cookies", cookiesPath,
@@ -181,9 +184,15 @@ async function alldl(input) {
         resolve(stdout.trim());
       });
     });
+
+    // Determinar os formatos disponíveis
     const hasAudio = formats.includes("audio only");
     const hasVideo = formats.includes("video only");
+    const hasImages = formats.includes("image");
+
     const downloadArgsList = [];
+
+    // Adicionar download de vídeo
     if (hasVideo) {
       downloadArgsList.push([
         "-f", "bestvideo+bestaudio/best",
@@ -192,6 +201,8 @@ async function alldl(input) {
         "--no-warnings",
       ]);
     }
+
+    // Adicionar download de áudio
     if (hasAudio) {
       downloadArgsList.push([
         "-f", "bestaudio",
@@ -200,6 +211,19 @@ async function alldl(input) {
         "--no-warnings",
       ]);
     }
+
+    // Adicionar download de imagens (para carrosséis)
+    if (hasImages) {
+      downloadArgsList.push([
+        "-f", "best",
+        "--cookies", cookiesPath,
+        "--output", outputTemplate,
+        "--no-warnings",
+        "--yes-playlist",
+      ]);
+    }
+
+    // Executar cada tipo de download
     for (const args of downloadArgsList) {
       await new Promise((resolve, reject) => {
         execFile(ytdlpPath, args.concat(url), (error, stdout) => {
@@ -208,6 +232,8 @@ async function alldl(input) {
         });
       });
     }
+
+    // Processar os arquivos baixados
     const files = fs.readdirSync(tempPath);
     for (const file of files) {
       const filePath = path.join(tempPath, file);
@@ -215,16 +241,21 @@ async function alldl(input) {
       const extension = path.extname(file).toLowerCase();
       let type = "";
       let mimetype = "";
+
       if ([".mp4", ".mkv", ".webm", ".avi", ".mov"].includes(extension)) {
         type = "video";
         mimetype = `video/mp4`;
       } else if ([".mp3", ".m4a", ".aac", ".opus"].includes(extension)) {
         type = "audio";
         mimetype = `audio/mp4`;
+      } else if ([".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(extension)) {
+        type = "image";
+        mimetype = `image/${extension.replace(".", "")}`;
       } else {
         type = "unknown";
         mimetype = "application/octet-stream";
       }
+
       results.push({ type, src: buffer, mimetype });
       fs.unlinkSync(filePath);
     }

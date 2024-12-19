@@ -217,10 +217,10 @@ async function alldl(input) {
       let mimetype = "";
       if ([".mp4", ".mkv", ".webm", ".avi", ".mov"].includes(extension)) {
         type = "video";
-        mimetype = `video/${extension.replace(".", "")}`;
+        mimetype = `video/mp4`;
       } else if ([".mp3", ".m4a", ".aac", ".opus"].includes(extension)) {
         type = "audio";
-        mimetype = `audio/${extension.replace(".", "")}`;
+        mimetype = `audio/mp4`;
       } else {
         type = "unknown";
         mimetype = "application/octet-stream";
