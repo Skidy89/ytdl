@@ -124,6 +124,7 @@ async function ytmp4(input) {
   return await processOutput(args, output);
 }
 
+/*
 async function alldl(input) {
   const url = input.startsWith("http") ? input : getVideoUrl(input);
   const results = [];
@@ -145,6 +146,41 @@ async function alldl(input) {
   }
 
   return results;
+}*/
+
+async function alldl(input) {
+  const url = input.startsWith("http") ? input : getVideoUrl(input);
+  const results = [];
+  const outputTemplate = path.join(tempPath, "%(title)s_%(id)s.%(ext)s");
+  const args = [
+    "-f", "bestvideo+bestaudio/best",
+    "--cookies", cookiesPath,
+    "--output", outputTemplate,
+    "--no-warnings",
+    "--yes-playlist",
+    url,
+  ];
+
+  try {
+    await ensureExecutable(ytdlpPath);
+    await new Promise((resolve, reject) => {
+      execFile(ytdlpPath, args, (error, stdout) => {
+        if (error) return reject(error);
+        resolve(stdout.trim());
+      });
+    });
+    const files = fs.readdirSync(tempPath);
+    for (const file of files) {
+      const filePath = path.join(tempPath, file);
+      const buffer = fs.readFileSync(filePath);
+      const type = file.endsWith(".mp4") ? "video" : "image";
+      results.push({ type, src: buffer });
+      fs.unlinkSync(filePath);
+    }
+  } catch (error) {
+    console.error(`Erro ao baixar mídia: ${error.message}`);
+  }
+  return results;
 }
 
-module.exports = { ytmp3, ytmp4, alldl };
+module.exports = { ytmp3, ytadl: ytmp3, ytvdl: ytmp4, ytmp4, alldl };

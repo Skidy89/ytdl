@@ -164,7 +164,7 @@ async function alldl(input) {
   try {
     await ensureExecutable(ytdlpPath);
     await new Promise((resolve, reject) => {
-      execFile(ytdlpPath, args, { cwd: tempPath }, (error, stdout) => {
+      execFile(ytdlpPath, args, (error, stdout) => {
         if (error) return reject(error);
         resolve(stdout.trim());
       });
@@ -183,4 +183,10 @@ async function alldl(input) {
   return results;
 }
 
-module.exports = { ytmp3, ytmp4, alldl };
+async function yts(query) {
+  const yt = await Innertube.create({ cache: new UniversalCache() });
+  const search = await yt.search(query);
+  return search;
+}
+
+module.exports = { ytmp3, ytadl: ytmp3, ytvdl: ytmp4, ytmp4, alldl, yts };
