@@ -14,11 +14,7 @@
     "downloader",
     "yta",
     "ytv",
-    "yts",
-    "ytdl",
-    "igdl",
-    "instagram",
-    "instadl"
+    "yts"
   ],
   "author": "Hiudy",
   "license": "MIT",
