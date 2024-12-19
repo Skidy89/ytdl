@@ -140,30 +140,6 @@ async function ytmp4(input) {
   return await processOutput(args, output);
 }
 
-/*
-async function alldl(input) {
-  const url = input.startsWith("http") ? input : getVideoUrl(input);
-  const results = [];
-  const tempFiles = [
-    { type: "video", ext: "mp4", format: "bestvideo+bestaudio[ext=mp4]/mp4" },
-    { type: "image", ext: "jpg", format: "best[ext=jpg]" },
-  ];
-
-  for (const { type, ext, format } of tempFiles) {
-    const output = path.join(tempPath, generateRandomName(ext));
-    const args = ["-f", format, "--cookies", cookiesPath, "-o", output, url];
-
-    try {
-      const buffer = await processOutput(args, output);
-      results.push({ type, src: buffer });
-    } catch (error) {
-      console.error(`Erro ao baixar ${type}: ${error.message}`);
-    }
-  }
-
-  return results;
-}*/
-
 async function alldl(input) {
   const url = input.startsWith("http") ? input : getVideoUrl(input);
   const results = [];

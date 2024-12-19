@@ -134,7 +134,7 @@ const { alldl } = require("@hiudyy/ytdl");
     const array = await alldl(url);
     
     for(download of array) {
-       console.log(`Download de ${array.type} concluído:`, src);
+       console.log(`Download de ${array.type} concluído:`, array.src);
     }
 })();
 ```
