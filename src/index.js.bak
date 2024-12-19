@@ -183,4 +183,10 @@ async function alldl(input) {
   return results;
 }
 
-module.exports = { ytmp3, ytadl: ytmp3, ytvdl: ytmp4, ytmp4, alldl };
+async function yts(query) {
+  const yt = await Innertube.create({ cache: new UniversalCache() });
+  const search = await yt.search(query);
+  return search;
+}
+
+module.exports = { ytmp3, ytadl: ytmp3, ytvdl: ytmp4, ytmp4, alldl, yts };
