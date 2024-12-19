@@ -186,8 +186,8 @@ async function alldl(input) {
     });
 
     // Determinar os formatos disponíveis
-    const hasAudio = formats.includes("audio only");
-    const hasVideo = formats.includes("video only");
+    const hasAudio = formats.includes("audio");
+    const hasVideo = formats.includes("video");
     const hasImages = formats.includes("image");
 
     const downloadArgsList = [];
