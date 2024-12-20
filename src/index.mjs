@@ -1,6 +1,6 @@
 import { execFile } from "child_process";
 import fs from "fs";
-import path = from "path";
+import path from "path";
 import { Innertube, UniversalCache } from "youtubei.js";
 
 const HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
