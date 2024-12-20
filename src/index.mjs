@@ -1,7 +1,7 @@
-const { execFile } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-const { Innertube, UniversalCache } = require("youtubei.js");
+import { execFile } from "child_process";
+import fs from "fs";
+import path = from "path";
+import { Innertube, UniversalCache } from "youtubei.js";
 
 const HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
 const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
@@ -262,4 +262,4 @@ async function yts(query) {
   return search;
 }
 
-module.exports = { ytmp3, ytadl: ytmp3, ytvdl: ytmp4, ytmp4, alldl, yts };
+export default { ytmp3, ytadl: ytmp3, ytvdl: ytmp4, ytmp4, alldl, yts };
