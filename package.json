@@ -2,16 +2,14 @@
   "name": "@hiudyy/ytdl",
   "version": "0.0.6",
   "description": "Universal Audio and Video Downloader: Download content effortlessly from YouTube, social media platforms, and various streaming sites.",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.mjs",
+  "main": "src/index.js",
   "exports": {
-    "require": "./dist/index.cjs.js",
-    "import": "./dist/index.mjs"
+    "require": "./src/index.js",
+    "import": "./src/index.mjs"
   },
   "scripts": {
-    "build:cjs": "npx babel src/index.js --out-file dist/index.cjs.js --plugins @babel/plugin-transform-modules-commonjs",
-    "build:esm": "cp src/index.js dist/index.mjs",
-    "build": "npm run build:cjs && npm run build:esm",
+    "build:esm": "cp src/index.js src/index.mjs",
+    "build": "npm run build:esm",
     "postinstall": "chmod +x ./bin/hiudyydl",
     "prepublishOnly": "npm run build"
   },
