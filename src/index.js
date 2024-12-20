@@ -162,7 +162,7 @@ async function alldl(input) {
 
     const hasAudio = /audio only/.test(formats) || formats.includes('video');
     const hasVideo = /video only/.test(formats) || formats.includes('audio');
-    const hasImages = /\.(jpg|png|webp)/i.test(url) || formata.includes('image');
+    const hasImages = /\.(jpg|png|webp)/i.test(url) || formats.includes('image');
 
     const downloadArgsList = [];
 

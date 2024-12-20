@@ -178,7 +178,7 @@ async function alldl(input) {
 
     if (hasAudio) {
       downloadArgsList.push([
-        "-f", "bestaudio[ext=m4a]",
+        "-f", "bestaudio",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
