@@ -20,31 +20,43 @@ function detectSystemInfo(callback) {
 
 detectSystemInfo((error, architecture, platform) => {
     if (error) {
-        console.error(`Erro ao detectar o sistema: ${error.message}`);
+        console.error(`❌ [ERROR] Ao detectar o sistema: ${error.message}`);
         return;
     }
 
-    if (platform !== 'linux') {
-        console.error('Este módulo só é compatível com sistemas Linux.');
+    if (platform === 'android') {
+        HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_py");
+        console.log(`📱 [PLATAFORMA] -> Sistema Android detectado.`);
+        console.log(`🚀 [@hiudyy/ytdl] -> Módulo inicializado com Python para Android.`);
         return;
     }
+
+    if (platform !== 'linux' && platform !== 'android') {
+        console.error(`❌ [PLATAFORMA] -> Este módulo é compatível apenas com sistemas Linux e Android.`);
+        return;
+    }
+
+    console.log(`✅ [PLATAFORMA] -> Sistema Linux detectado, prosseguindo com a verificação da arquitetura.`);
 
     switch (architecture) {
         case 'x64':
             HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
+            console.log(`💻 [ARQUITETURA] -> Arquitetura x64 detectada.`);
             break;
         case 'arm':
             HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_v7");
+            console.log(`🤖 [ARQUITETURA] -> Arquitetura ARM detectada.`);
             break;
         case 'arm64':
             HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_64");
+            console.log(`🔧 [ARQUITETURA] -> Arquitetura ARM64 detectada.`);
             break;
         default:
-            console.error(`Arquitetura não suportada: ${architecture}`);
+            console.error(`❌ [ARQUITETURA] -> Arquitetura não suportada: ${architecture}`);
             return;
     }
 
-    console.log(`HiudyyDLPath definido para: ${HiudyyDLPath}`);
+    console.log(`✅ [@hiudyy/ytdl] -> Módulo inicializado com sucesso na arquitetura: ${architecture}.`);
 });
 
 const formattedCookies = cookiesJson.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
@@ -115,7 +127,17 @@ async function processOutput(args, tempFile) {
   return new Promise((resolve, reject) => {
     execFile(HiudyyDLPath, args, (err, stdout, stderr) => {
       if (err) {
-        reject(`Hiudyydl error: ${stderr || err.message}`);
+        if (HiudyyDLPath.includes('hiudyydl_py')) {
+          execFile('python', [HiudyyDLPath, ...args], (pyErr, pyStdout, pyStderr) => {
+            if (pyErr) {
+              reject(`Erro ao executar com Python: ${pyStderr || pyErr.message}`);
+            } else {
+              handleFile(tempFile, resolve, reject);
+            }
+          });
+        } else {
+          reject(`Hiudyydl error: ${stderr || err.message}`);
+        }
       } else {
         handleFile(tempFile, resolve, reject);
       }
@@ -227,13 +249,23 @@ async function alldl(input) {
     }
 
     for (const args of downloadArgsList) {
-      await new Promise((resolve, reject) => {
-        execFile(HiudyyDLPath, args.concat(url), (error, stdout) => {
-          if (error) return reject(error);
-          resolve(stdout.trim());
-        });
-      });
-    }
+  await new Promise((resolve, reject) => {
+    execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
+      if (error) {
+        if (HiudyyDLPath.includes('hiudyydl_py')) {
+          execFile('python', [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
+            if (pyErr) return reject(`Erro ao executar com Python: ${pyStderr || pyErr.message}`);
+            resolve(pyStdout.trim());
+          });
+        } else {
+          return reject(`Hiudyydl error: ${stderr || error.message}`);
+        }
+      } else {
+        resolve(stdout.trim());
+      }
+    });
+  });
+}
 
     const files = fs.readdirSync(tempPath);
     for (const file of files) {
