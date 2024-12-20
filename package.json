@@ -1,0 +1,27 @@
+{
+  "name": "@hiudyy/ytdl",
+  "version": "0.0.6",
+  "description": "Universal Audio and Video Downloader: Download content effortlessly from YouTube, social media platforms, and various streaming sites.",
+  "main": "src/index.js",
+  "module": "src/index.mjs",
+  "exports": {
+    "require": "./src/index.js",
+    "import": "./src/index.mjs"
+  },
+  "scripts": {
+    "build:esm": "cp src/index.js src/index.mjs",
+    "build": "npm run build:esm",
+    "postinstall": "chmod +x ./bin/hiudyydl",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["youtube", "yta", "ytv", "ytdl", "ytmp3", "ytmp4", "youtubedl", "youtubemusic", "ytmusic", "ig", "instagram", "instadl", "igdl", "facebook", "fb", "fbdownloader", "tiktok", "tiktokdl", "twitter", "twitterdl", "reddit", "redditsave", "redditdl", "vimeo", "vimeodl", "soundcloud", "soundclouddl", "dailymotion", "tumblr", "tumblrdl", "pinterest", "pindl", "twitch", "twitchdl", "spotify", "spotifydl", "vk", "vkdl", "linkedin", "linkedindl", "snapchat", "snapdl", "bilibili", "bilibidownloader", "okru", "odnoklassniki", "ruok", "yandex", "yandexvideo", "yandexmusic", "bandcamp", "bandcampdl", "mixcloud", "mixclouddl", "pornhub", "phdl", "xvideos", "xvdl", "xhamster", "xhamsterdl", "onlyfans", "ofdl", "fansly", "fanslydl", "liveleak", "liveleakdl", "mediafire", "mfdownloader", "googledrive", "googledrivedl", "onedrive", "onedrivedl", "box", "boxdl", "mega", "megadl", "flickr", "flickrdl", "imdb", "imdbdl", "crunchyroll", "crunchydl", "funimation", "funimationdl", "netflix", "netflixdl", "hulu", "huludl", "hbomax", "hbomaxdl", "disneyplus", "disneyplusdl", "amazonprime", "primevideodl", "peacock", "peacockdl", "paramountplus", "paramountplusdl", "applemusic", "appletv", "appletvdl", "9gag", "9gagdl", "streamable", "streamabledl", "mixer", "mixerdownloader", "telegram", "telegramdl", "microsoftstream", "microsoftstreamdl", "vkontakte", "vkdld", "coub", "coubdl", "zdf", "zdfdl", "arte", "artedl", "prosieben", "prosiebenddl", "mtv", "mtvdl", "nbc", "nbcdl", "fox", "foxdl", "cnn", "cnndl", "cbc", "cbcdl", "abc", "abcdl", "aljazeera", "aljazeeradl", "nytimes", "nytimesdl", "washingtonpost", "washingtonpostdl", "guardian", "guardiandl", "dailymail", "dailymaildl", "usatoday", "usatodaydl", "bbcnews", "bbcnewdl", "euronews", "euronewsdl", "reuters", "reutersdl", "economist", "economistdl", "bloomberg", "bloombergdl", "financialtimes", "financialtimesdl", "weibo", "weibodl", "qq", "qqdl", "douyin", "douyindl", "kakaotalk", "kakaodl", "naver", "naverdl", "line", "linedl", "baidu", "baidudl", "tencent", "tencentdl", "iqiyi", "iqiyidl", "youku", "youkudl", "sina", "sinadl", "netease", "neteasedl", "qqmusic", "qqmusicdl", "kuwo", "kuwodl", "kugou", "kugoudl", "yinyue", "yinyuedl", "qqvideo", "qqvideodl", "alldl", "multidl", "everythingdl", "streamdl", "audiopro", "videodownloader", "mediapro", "onlinedl", "fullmedia", "completevideo", "contentdl", "socialdl", "socialmedia", "cloudvideo", "cloudmusic", "universaldownloader", "globaldl"],
+  "author": "Hiudy",
+  "license": "MIT",
+  "dependencies": {
+    "path": "^0.12.7",
+    "youtubei.js": "github:LuanRT/YouTube.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
