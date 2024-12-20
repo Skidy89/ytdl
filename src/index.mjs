@@ -2,12 +2,50 @@ import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 import { Innertube, UniversalCache } from "youtubei.js";
+import os from 'os';
 
-const HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
 const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
 const cookiesPath2 = path.join(__dirname, "../bin/cookies.json");
 const cookiesJson = JSON.parse(fs.readFileSync(cookiesPath2, 'utf-8'));
 const tempPath = path.join(__dirname, "../temp");
+
+let HiudyyDLPath = '';
+
+function detectSystemInfo(callback) {
+    const architecture = os.arch();
+    const platform = os.platform();
+
+    callback(null, architecture, platform);
+}
+
+detectSystemInfo((error, architecture, platform) => {
+    if (error) {
+        console.error(`Erro ao detectar o sistema: ${error.message}`);
+        return;
+    }
+
+    if (platform !== 'linux') {
+        console.error('Este módulo só é compatível com sistemas Linux.');
+        return;
+    }
+
+    switch (architecture) {
+        case 'x64':
+            HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
+            break;
+        case 'arm':
+            HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_v7");
+            break;
+        case 'arm64':
+            HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_64");
+            break;
+        default:
+            console.error(`Arquitetura não suportada: ${architecture}`);
+            return;
+    }
+
+    console.log(`HiudyyDLPath definido para: ${HiudyyDLPath}`);
+});
 
 const formattedCookies = cookiesJson.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
