@@ -160,9 +160,9 @@ async function alldl(input) {
       });
     });
 
-    const hasAudio = /audio only/.test(formats);
-    const hasVideo = /video only/.test(formats);
-    const hasImages = /\.(jpg|png|webp)/i.test(url);
+    const hasAudio = /\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(formats) || formats.includes('audio');
+    const hasVideo = /\.(mp4|mkv|avi|mov|wmv|flv|webm)$/i.test(formats) || formats.includes('video');
+    const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats.includes('image');
 
     const downloadArgsList = [];
 
@@ -178,7 +178,7 @@ async function alldl(input) {
 
     if (hasAudio) {
       downloadArgsList.push([
-        "-f", "bestaudio[ext=m4a]",
+        "-f", "bestaudio",
         "--cookies", cookiesPath,
         "--output", outputTemplate,
         "--no-warnings",
