@@ -1,3 +1,4 @@
+const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { Innertube, UniversalCache } = require("youtubei.js");
@@ -114,14 +115,7 @@ async function processOutput(args, tempFile) {
   return new Promise((resolve, reject) => {
     execFile(HiudyyDLPath, args, (err, stdout, stderr) => {
       if (err) {
-        console.log("Erro ao executar diretamente, tentando com 'python'...");
-        execFile("python", [HiudyyDLPath, ...args], (pythonErr, pythonStdout, pythonStderr) => {
-          if (pythonErr) {
-            reject(`Hiudyydl error: ${pythonStderr || pythonErr.message}`);
-          } else {
-            handleFile(tempFile, resolve, reject);
-          }
-        });
+        reject(`Hiudyydl error: ${stderr || err.message}`);
       } else {
         handleFile(tempFile, resolve, reject);
       }
