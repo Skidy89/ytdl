@@ -1,13 +1,13 @@
 # @hiudyy/ytdl
 
-Um módulo simples e eficiente para baixar vídeos e áudios do YouTube, e de vários outros sites, além de realizar buscas por músicas.
+A simple and efficient module to download videos and audios from YouTube and various other sites, as well as perform music searches.
 
 
 ---
 
-## Instalação
+## Installation
 
-Para instalar o módulo, use o gerenciador de pacotes npm ou yarn:
+To install the module, use the npm or yarn package manager:
 
 ```bash
 npm install @hiudyy/ytdl
@@ -18,9 +18,9 @@ yarn add @hiudyy/ytdl
 
 ---
 
-## Como usar
+## How to use
 
-Importando o módulo
+Importing the module
 
 ```javascript
 const { yts, ytmp4, ytmp3, alldl } = require("@hiudyy/ytdl");
@@ -30,11 +30,11 @@ const { yts, ytmp4, ytmp3, alldl } = require("@hiudyy/ytdl");
 
 ---
 
-## Funções disponíveis
+## Available functions
 
-_1. Pesquisar músicas (**yts**)_
+_1. Search for songs (**yts**)_
 
-Use esta função para buscar informações sobre uma música no YouTube.
+Use this function to search for information about a song on YouTube.
 
 ```javascript
 const { yts } = require("@hiudyy/ytdl");
@@ -51,7 +51,7 @@ const { yts } = require("@hiudyy/ytdl");
 })();
 ```
 
-Saída esperada:
+Expected output:
 
 ```
 Título: Bon Jovi - It's My Life (Official Music Video)
@@ -60,7 +60,7 @@ Duração: 4:27
 URL: https://www.youtube.com/watch?v=vx2u5uUu3DE
 ```
 
-Quando você usa a função **yts**, a estrutura básica da resposta é:
+When you use the **yts** function, the basic structure of the response is:
 
 ```json
 {
@@ -90,9 +90,9 @@ Quando você usa a função **yts**, a estrutura básica da resposta é:
 
 ---
 
-_2. Baixar vídeo do YouTube (**ytmp4**)_
+_2. Download YouTube video (**ytmp4**)_
 
-Esta função baixa o vídeo de um link do YouTube.
+This function downloads the video from a YouTube link.
 
 ```javascript
 const { ytmp4 } = require("@hiudyy/ytdl");
@@ -102,16 +102,16 @@ const { ytmp4 } = require("@hiudyy/ytdl");
     const url = "https://www.youtube.com/watch?v=vx2u5uUu3DE";
     const video = await ytmp4(url);
     
-    console.log("Download do vídeo concluído:", video);
+    console.log("Video download completed:", video);
 })();
 ```
 
 
 ---
 
-_3. Baixar áudio do YouTube (**ytmp3**)_
+_3. Download audio from YouTube (**ytmp3**)_
 
-Esta função baixa apenas o áudio de um vídeo do YouTube.
+This function downloads only the audio from a YouTube video.
 
 ```javascript
 const { ytmp3 } = require("@hiudyy/ytdl");
@@ -121,16 +121,16 @@ const { ytmp3 } = require("@hiudyy/ytdl");
     const url = "https://www.youtube.com/watch?v=vx2u5uUu3DE";
     const audio = await ytmp3(url);
     
-    console.log("Download do áudio concluído:", audio);
+    console.log("Audio download completed:", audio);
 })();
 ```
 
 
 ---
 
-_4. Baixar audios/videos de outros sites (**alldl**)_ 
+_4. Download media from other sites (**alldl**)_
 
-Esta função baixa áudios, vídeos, imagens ou documentos da maioria dos sites disponiveis na web
+This function downloads audio, video, images, or documents from most available websites on the web.
 
 ```javascript
 const { alldl } = require("@hiudyy/ytdl");
@@ -141,12 +141,12 @@ const { alldl } = require("@hiudyy/ytdl");
     const array = await alldl(url);
     
     for(download of array) {
-       console.log(`Download de ${array.type} concluído:`, array.src);
+       console.log(`Download of ${array.type} completed:`, array.src);
     }
 })();
 ```
 
-Quando você usa a função **alldl**, a estrutura básica da resposta é:
+When you use the **alldl** function, the basic structure of the response is:
 
 ```json
 [
@@ -176,25 +176,25 @@ Quando você usa a função **alldl**, a estrutura básica da resposta é:
 
 ---
 
-## Contribuição
+## Contribution
 
-Sinta-se à vontade para abrir issues ou enviar pull requests para melhorar o módulo.
+Feel free to open issues or submit pull requests to improve the module.
 
-Repositório GitHub: [🔗 Clique aqui](https://github.com/hiudyy/ytdl)
-
-
----
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT.
+GitHub repository: [🔗 Click here](https://github.com/hiudyy/ytdl)
 
 
 ---
 
-## Sites suportados
+## License
 
-Lista de sites suportados pela função **alldl**
+This project is licensed under the MIT License.
+
+
+---
+
+## Supported sites
+
+List of sites supported by the **alldl** function
 
  - **17live**
  - **17live:clip**
