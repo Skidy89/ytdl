@@ -225,7 +225,7 @@
   "license": "MIT",
   "dependencies": {
     "path": "^0.12.7",
-    "youtubei.js": "github:LuanRT/YouTube.js",
+    "youtubei.js": "latest",
     "os": "latest"
   },
   "devDependencies": {
