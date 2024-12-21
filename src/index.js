@@ -1,7 +1,7 @@
 const { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl } = require('./../dist/utils.js');
-const { iaFree, models, clear, imageGenV2 } = require('./ia/index.js');
 const { Innertube, UniversalCache } = require("youtubei.js");
 const { execFile } = require("child_process");
+const ai = require('./ia/index.js');
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -195,6 +195,5 @@ ytadl: ytmp3,
 ytvdl: ytmp4, 
 alldl, 
 yts, 
-ai: iaFree, 
-ai: { models, clear, imagev2: imageGenV2 } 
+ai: ai
 };

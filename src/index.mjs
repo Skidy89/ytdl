@@ -1,7 +1,7 @@
 import { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl } from './../dist/utils.js';
-import { iaFree, models, clear, imageGenV2 } from './ia/index.js';
 import { Innertube, UniversalCache } from "youtubei.js";
 import { execFile } from "child_process";
+import ai from './ia/index.js';
 import path from "path";
 import fs from "fs";
 import os from 'os';
@@ -195,8 +195,7 @@ ytadl: ytmp3,
 ytvdl: ytmp4, 
 alldl: alldl, 
 yts: yts, 
-ai: iaFree, 
-ai: { models, clear, imagev2: imageGenV2 } 
+ai: ai
 };
 
 export default expotszz;
