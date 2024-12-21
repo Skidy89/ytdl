@@ -1,7 +1,6 @@
 const ApiKeyHercai = "RtjHwyCkQGTmUm6NyZv3MR9Hoyda11NIMWcuqBR0=";
 const fetch = require('node-fetch');
 const aiLibrary = require('unlimited-ai');
-const { gpt } = require("gpti");
 let AiTempSave = {};
 
 async function models() {

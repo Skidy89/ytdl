@@ -21,8 +21,7 @@
     "youtubei.js": "latest", 
     "os": "latest",
     "unlimited-ai": "latest",
-    "node-fetch": "^2.6.11",
-    "gpti": "latest"
+    "node-fetch": "^2.6.11"
   },
   "devDependencies": {
     "typescript": "^5.7.2"
