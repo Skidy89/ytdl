@@ -64,7 +64,7 @@ function getModelImage(modelim) {
 async function imageGenV2(textin, model = 'dalle') {
   if (!textin) throw new Error("Falta fornecer um texto.");
   const modelOfc = getModelImage(model);
-  const url = `https://hercai.onrender.com/${modelOfc}?prompt=${encodeURIComponent(textin)}&negative_prompt=bad%20quality`;
+  const url = `https://hercai.onrender.com/${modelOfc}?prompt=${encodeURIComponent(textin)}&negative_prompt=${encodeURIComponent("Bad quality, missing body parts, deformed body, meaningless image, poor quality, Deformed body parts, missing limbs, extra limbs")}`;
   const response = await fetch(url, {
     method: 'GET',
     headers: { "Content-Type": "application/json", "Authorization": ApiKeyHercai }
