@@ -23,7 +23,7 @@ return modelete;
 
 
 async function iaFree(text, model = 'gpt-4o', idChat = false) {
-if(!text) return throw new Error(`Falta forneceer um texto.`);
+if(!text) { throw new Error(`Falta forneceer um texto.`); };
 const modelOfc = getModel(model);
 if(!idChat) {
 const formattedMessages = [{ role: 'user', content: text }];
