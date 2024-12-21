@@ -86,7 +86,7 @@ async function imageGenV2(textin, model = 'dalle') {
 const ai = Object.assign(ia, {
   models,
   clear,
-  imageGenV2
+  imagev2: imageGenV2
 });
 
 export default ai;
