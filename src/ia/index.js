@@ -1,9 +1,11 @@
+const ApiKeyHercai = "RtjHwyCkQGTmUm6NyZv3MR9Hoyda11NIMWcuqBR0=";
+const fetch = require('node-fetch');
 const ai = require('unlimited-ai');
 let AiTempSave = {};
 
 
 async function models() {
- return ["gpt-4o-mini", "gpt-4-turbo", "gpt-4o", "grok-2", "grok-2-mini", "grok-beta", "claude-3-opus", "claude-3-sonnet", "claude-3-5-sonnet", "claude-3-5-sonnet-2", "gemini"];
+ return {text: ["gpt-4o-mini", "gpt-4-turbo", "gpt-4o", "grok-2", "grok-2-mini", "grok-beta", "claude-3-opus", "claude-3-sonnet", "claude-3-5-sonnet", "claude-3-5-sonnet-2", "gemini"], imagev2: ["dalle"]};
 };
 
 
@@ -21,6 +23,7 @@ return modelete;
 
 
 async function iaFree(text, model = 'gpt-4o', idChat = false) {
+if(!text) return throw new Error(`Falta forneceer um texto.`);
 const modelOfc = getModel(model);
 if(!idChat) {
 const formattedMessages = [{ role: 'user', content: text }];
@@ -37,4 +40,22 @@ return textinresposta;
 }};
 
 
-module.exports = { iaFree, models, clear };
+function getModelImage(modelim) {
+const modelinhos = {"dalle": "v3/text2image"};
+const modelete = modelinhos[modelim] ? modelinhos[modelim] : "v3/text2image";
+return modelete;
+};
+
+
+async function imageGenV2(textin, model = 'dalle') {
+if(!textin) { throw new Error(`Falta forneceer um texto.`); };
+const modelOfc = getModelImage(model);
+const url = "https://hercai.onrender.com/"+modelOfc+"?prompt="+encodeURI(textin)+"&negative_prompt=bad%20quality";
+const response = await fetch(url, { method: 'GET', headers: { "Content-Type": "application/json", "Authorization": ApiKeyHercai }});
+if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); };
+const api = await response.json();
+return {url: api.url, prompt: textin, model: dalle};
+};
+
+
+module.exports = { iaFree, models, clear, imageGenV2 };
