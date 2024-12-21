@@ -70,7 +70,7 @@ async function imageGenV2(textin, model = 'dalle') {
   });
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
   const apiResponse = await response.json();
-  return { url: apiResponse.url, prompt: textin, model: model };
+  return { url: apiResponse.url, prompt: textin, model: modelOfc };
 }
 
 const ai = Object.assign(ia, {
