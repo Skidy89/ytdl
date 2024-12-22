@@ -5,6 +5,50 @@ import ai from './ia/index.js';
 import path from "path";
 import fs from "fs";
 import os from 'os';
+import fetch from 'node-fetch';
+
+
+
+
+(async () => {
+  const binPath = path.join(__dirname, '../bin/');
+  const repos = [
+    {
+      repo: 'haccy/yt-dlp',
+      versionFile: path.join(binPath, 'version1.txt'),
+      files: [
+        { suffix: 'yt-dlp', name: 'hiudyydl_py' },
+        { suffix: 'yt-dlp_linux', name: 'hiudyydl' }
+      ]
+    },
+    {
+      repo: 'yt-dlp/yt-dlp',
+      versionFile: path.join(binPath, 'version2.txt'),
+      files: [
+        { suffix: 'yt-dlp_linux_aarch64', name: 'hiudyydl_64' },
+        { suffix: 'yt-dlp_linux_armv7l', name: 'hiudyydl_v7' }
+      ]
+    }
+  ];
+
+  fs.mkdirSync(binPath, { recursive: true });
+
+  for (const { repo, versionFile, files } of repos) {
+    const { tag_name, assets } = await fetch(`https://api.github.com/repos/${repo}/releases/latest`).then(r => r.json());
+    const localVersion = fs.existsSync(versionFile) ? fs.readFileSync(versionFile, 'utf8').trim() : null;
+    if (localVersion === tag_name) {
+      continue;
+    }
+    for (const { suffix, name } of files) {
+      const asset = assets.find(a => a.name.endsWith(suffix));
+      if (asset) {
+        await fetch(asset.browser_download_url).then(r => r.body.pipe(fs.createWriteStream(path.join(binPath, name))));
+      }
+    }
+    fs.writeFileSync(versionFile, tag_name);
+    console.log(`Repositório atualizado para a versão: ${tag_name}`);
+  }
+})();
 
 
 
