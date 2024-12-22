@@ -178,30 +178,32 @@ When you use the **alldl** function, the basic structure of the response is:
 
 _5. artificial inteligence (**ai**)_
 
-Essa função serve para utilizar inteligência artificial, tanto de texto quanto de imagem.
+This function is used to use artificial intelligence, both for text and images.
 
 ```javascript
 const { ai } = require('@hiudyy/ytdl');
 //import { ai } from '@hiudyy/ytdl';
 
-//uso basico da ia de texto
+/*-------------------------------------------*/
+// AI Normal
 (async () => {
-    const prompt = 'hiii';
+    // Basic usage
+    const prompt = 'Hello!';
     const response = await ai(prompt);
     console.log(response);
 })();
 
-//selecionando modelo de ia
 (async () => {
-    const prompt = 'hiii';
+    // Selecting a specific model
+    const prompt = 'Hello!';
     const model = 'gpt-4o';
     const response = await ai(prompt, model);
     console.log(response);
 })();
 
-//adicionando memoria de mensagens
 (async () => {
-    const prompt = 'hiii';
+    // Using message memory
+    const prompt = 'Hello!';
     const model = 'gpt-4o';
     const chatId = 'Z7nM9wUb61zi01Ma';
     const response = await ai(prompt, model, chatId);
@@ -209,44 +211,77 @@ const { ai } = require('@hiudyy/ytdl');
 })();
 
 /*-------------------------------------------*/
-
-//uso basico da ia de imagens
+// AI V2
 (async () => {
-    const prompt = 'dark florest';
+    // Basic usage
+    const prompt = 'Hello, version 2!';
+    const response = await ai.v2(prompt);
+    console.log(response);
+})();
+
+(async () => {
+    // Selecting a specific model
+    const prompt = 'Hello, version 2!';
+    const model = 'gpt-4o';
+    const response = await ai.v2(prompt, model);
+    console.log(response);
+})();
+
+(async () => {
+    // Using message memory
+    const prompt = 'Hello, version 2!';
+    const model = 'gpt-4o';
+    const chatId = 'Z7nM9wUb61zi01Ma';
+    const response = await ai.v2(prompt, model, chatId);
+    console.log(response);
+})();
+
+/*-------------------------------------------*/
+// AI V3 (No memory support)
+(async () => {
+    // Basic usage
+    const prompt = 'Hello, version 3!';
+    const response = await ai.v3(prompt);
+    console.log(response);
+})();
+
+(async () => {
+    // Selecting a specific model
+    const prompt = 'Hello, version 3!';
+    const model = 'gpt-4o';
+    const response = await ai.v3(prompt, model);
+    console.log(response);
+})();
+
+/*-------------------------------------------*/
+// AI Image
+(async () => {
+    // Basic usage
+    const prompt = 'A dark forest with glowing lights';
     const response = await ai.image(prompt);
     console.log(response);
 })();
 
-/*-------------------------------------------*/
-
-//uso básico da ia de imagens alternativa
 (async () => {
-    const prompt = 'dark florest';
-    const response = await ai.imagev2(prompt);
-    console.log(response);
-})();
-
-//selecionando modelos de ia
-(async () => {
-    const prompt = 'dark florest';
+    // Selecting a specific image model
+    const prompt = 'A dark forest with glowing lights';
     const model = 'dalle';
-    const response = await ai.imagev2(prompt, model);
+    const response = await ai.image(prompt, model);
     console.log(response);
 })();
 
 /*-------------------------------------------*/
-
-//buscando modelos de ia disponíveis
+// Retrieving available AI models
 (async () => {
     const models = await ai.models();
     console.log(models);
 })();
 
 /*-------------------------------------------*/
-
-//limpar armazenamento de mensagens da ia
+// Clearing AI message storage
 (async () => {
     await ai.clear();
+    console.log('Message storage cleared.');
 })();
 ```
 

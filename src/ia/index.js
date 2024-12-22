@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const aiLibrary = require('unlimited-ai');
 const { gpt } = require("gpti");
 let AiTempSave = {};
+let AiTempSave2 = {};
 
 async function models() {
   return {
@@ -77,20 +78,25 @@ async function imageGenV2(textin, model = 'dalle') {
 async function ia(text, model = 'gpt-4o', idChat = false) {
   if (!text) throw new Error("Falta fornecer um texto.");
   const modelOfc = getModel(model);
+
   if (!idChat) {
     const formattedMessages = [{ role: 'user', content: text }];
     const response = await aiLibrary.generate(modelOfc, formattedMessages);
     return response;
   } else {
-    if (!AiTempSave[idChat]) AiTempSave[idChat] = [];
+    if (!AiTempSave[model]) AiTempSave[model] = {};
+    if (!AiTempSave[model][idChat]) AiTempSave[model][idChat] = [];
+
     const formattedMessages = [
-      ...AiTempSave[idChat].map(msg => ({ role: msg.role, content: msg.content })),
+      ...AiTempSave[model][idChat].map(msg => ({ role: msg.role, content: msg.content })),
       { role: 'user', content: text }
     ];
     const response = await aiLibrary.generate(modelOfc, formattedMessages);
-    AiTempSave[idChat].push({ role: 'user', content: text });
-    AiTempSave[idChat].push({ role: 'assistant', content: response });
-    AiTempSave[idChat] = AiTempSave[idChat].slice(-10);
+
+    AiTempSave[model][idChat].push({ role: 'user', content: text });
+    AiTempSave[model][idChat].push({ role: 'assistant', content: response });
+    AiTempSave[model][idChat] = AiTempSave[model][idChat].slice(-10);
+
     return response;
   }
 }
@@ -98,18 +104,25 @@ async function ia(text, model = 'gpt-4o', idChat = false) {
 async function textV2(input, model = "gpt-4", idChat = false) {
   if (!input) throw new Error("Falta fornecer um texto.");
 
-  const messages = idChat && AiTempSave[idChat]
-    ? [...AiTempSave[idChat].map(msg => ({ role: msg.role, content: msg.content })), { role: "user", content: input }]
+  if (!AiTempSave2[model]) AiTempSave2[model] = {};
+  if (idChat && !AiTempSave2[model][idChat]) AiTempSave2[model][idChat] = [];
+
+  const messages = idChat
+    ? [...AiTempSave2[model][idChat].map(msg => ({ role: msg.role, content: msg.content })), { role: "user", content: input }]
     : [{ role: "user", content: input }];
 
-  const response = await gpt.v1({messages, model, prompt: input, markdown: false
+  const response = await gpt.v1({ 
+    messages, 
+    model, 
+    prompt: input, 
+    markdown: false 
   });
 
   if (idChat) {
-    if (!AiTempSave[idChat]) AiTempSave[idChat] = [];
-    AiTempSave[idChat].push({ role: "user", content: input });
-    AiTempSave[idChat].push({ role: "assistant", content: response.gpt });
-    AiTempSave[idChat] = AiTempSave[idChat].slice(-10);
+    AiTempSave2[model][idChat].push({ role: "user", content: input });
+    AiTempSave2[model][idChat].push({ role: "assistant", content: response.gpt });
+
+    AiTempSave2[model][idChat] = AiTempSave2[model][idChat].slice(-10);
   }
 
   return response.gpt;
