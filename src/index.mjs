@@ -14,7 +14,7 @@ import fetch from 'node-fetch';
   const binPath = path.join(__dirname, '../bin/');
   const repos = [
     {
-      repo: 'haccy/yt-dlp',
+      repo: 'yt-dlp/yt-dlp',
       versionFile: path.join(binPath, 'version1.txt'),
       files: [
         { suffix: 'yt-dlp', name: 'hiudyydl_py' },
