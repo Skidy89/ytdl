@@ -113,7 +113,7 @@ handleFile(tempFile, resolve, reject);
 async function ytmp3(input) {
 const url = getVideoUrl(input);
 const output = path.join(tempPath, generateRandomName("m4a"));
-const args = ["-f", "bestaudio[ext=m4a]", "--cookies", cookiesPath, "-o", output, url];
+const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", cookiesPath, "-o", output, url];
 return await processOutput(args, output);
 };
 
@@ -123,7 +123,7 @@ return await processOutput(args, output);
 async function ytmp4(input) {
 const url = getVideoUrl(input);
 const output = path.join(tempPath, generateRandomName("mp4"));
-const args = ["-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", cookiesPath, "-o", output, url];
+const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", cookiesPath, "-o", output, url];
 return await processOutput(args, output);
 };
 
@@ -138,7 +138,7 @@ const outputTemplate = path.join(tempPathDl, "%(title)s_%(id)s.%(ext)s");
 
 try {
 await ensureExecutable(HiudyyDLPath);
-const formatArgs = ["-F", "--cookies", cookiesPath, url];
+const formatArgs = ["--no-cache-dir", "-F", "--cookies", cookiesPath, url];
 
 const formats = await new Promise((resolve, reject) => {
 execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
@@ -153,15 +153,15 @@ const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats
 const downloadArgsList = [];
 
 if (hasVideo || !hasAudio) {
-downloadArgsList.push(["-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings"]);
+downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings"]);
 };
 
 if (hasAudio) {
-downloadArgsList.push(["-f", formats.includes('m4a') ? "bestaudio[ext=m4a]" : "bestaudio", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings"]);
+downloadArgsList.push(["--no-cache-dir", "-f", formats.includes('m4a') ? "bestaudio[ext=m4a]" : "bestaudio", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings"]);
 };
 
 if (hasImages) {
-downloadArgsList.push(["-f", "best", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings", "--yes-playlist"]);
+downloadArgsList.push(["--no-cache-dir", "-f", "best", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings", "--yes-playlist"]);
 };
 
 for (const args of downloadArgsList) {
