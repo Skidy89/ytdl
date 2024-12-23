@@ -46,15 +46,8 @@ return `https://www.youtube.com/watch?v=${idzz}`;
 
 
 function ensureExecutable(filePath) {
-return new Promise((resolve, reject) => {
-fs.access(filePath, fs.constants.X_OK, (err) => {
-if (err) {
-execFile("chmod", ["+x", filePath], (chmodErr) => {
-if (chmodErr) reject(`Erro ao corrigir permissões: ${chmodErr.message}`);
-else resolve()});
-} else {
-resolve();
-}})})};
+fs.chmodSync(filePath, 0o755)
+};
 
 
 function handleFile(tempFile, resolve, reject) {

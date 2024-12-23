@@ -55,7 +55,6 @@ import fetch from 'node-fetch';
       });
       console.log(`⚠️ [INFO] Baixando a biblioteca`);
       await fetch(asset.browser_download_url).then(r => r.body.pipe(fs.createWriteStream(filePath)));
-      if (platform === 'linux' || platform === 'android') fs.chmodSync(filePath, 0o755);
       console.log(`✅ [SUCESSO] Binário baixado e salvo como: ${name}`);
     } else {
       console.error(`❌ [ERRO] Asset não encontrado para o binário: ${suffix}`);
