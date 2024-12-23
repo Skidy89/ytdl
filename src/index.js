@@ -15,97 +15,110 @@ const fetch = require('node-fetch');
   const repos = [
     {
       repo: 'yt-dlp/yt-dlp',
-      versionFile: path.join(binPath, 'version1.txt'),
+      versionFile: path.join(binPath, 'version.txt'),
       files: [
-        { suffix: 'yt-dlp', name: 'hiudyydl_py' },
-        { suffix: 'yt-dlp_linux', name: 'hiudyydl' }
-      ]
-    },
-    {
-      repo: 'yt-dlp/yt-dlp',
-      versionFile: path.join(binPath, 'version2.txt'),
-      files: [
-        { suffix: 'yt-dlp_linux_aarch64', name: 'hiudyydl_64' },
-        { suffix: 'yt-dlp_linux_armv7l', name: 'hiudyydl_v7' }
+        { suffix: 'yt-dlp', name: 'hiudyydl_py', platforms: ['android'] },
+        { suffix: 'yt-dlp_linux', name: 'hiudyydl', platforms: ['linux', 'x64'] },
+        { suffix: 'yt-dlp_linux_aarch64', name: 'hiudyydl_64', platforms: ['linux', 'aarch64'] },
+        { suffix: 'yt-dlp_linux_armv7l', name: 'hiudyydl_v7', platforms: ['linux', 'arm'] },
+        { suffix: 'yt-dlp.exe', name: 'hiudyydl_win.exe', platforms: ['win32'] },
+        { suffix: 'yt-dlp_windows_x86.zip', name: 'hiudyydl_win_x86.zip', platforms: ['win32', 'x86'] },
+        { suffix: 'yt-dlp_windows_x64.zip', name: 'hiudyydl_win_x64.zip', platforms: ['win32', 'x64'] }
       ]
     }
   ];
-
   fs.mkdirSync(binPath, { recursive: true });
-
+  const platform = os.platform();
+  const arch = os.arch();
   for (const { repo, versionFile, files } of repos) {
     const { tag_name, assets } = await fetch(`https://api.github.com/repos/${repo}/releases/latest`).then(r => r.json());
     const localVersion = fs.existsSync(versionFile) ? fs.readFileSync(versionFile, 'utf8').trim() : null;
     if (localVersion === tag_name) {
       continue;
     }
-    for (const { suffix, name } of files) {
-      const asset = assets.find(a => a.name.endsWith(suffix));
-      if (asset) {
-        await fetch(asset.browser_download_url).then(r => r.body.pipe(fs.createWriteStream(path.join(binPath, name))));
+    let selectedFile = null;
+    for (const { suffix, name, platforms } of files) {
+      if (platforms.includes(platform) && (platform !== 'linux' || platforms.includes(arch))) {
+        selectedFile = { suffix, name };
+        break;
       }
     }
+    if (!selectedFile) {
+      continue;
+    }
+    const { suffix, name } = selectedFile;
+    const asset = assets.find(a => a.name.endsWith(suffix));
+    if (asset) {
+      const filePath = path.join(binPath, name);
+      fs.readdirSync(binPath).forEach(file => {
+        if (file !== name) fs.unlinkSync(path.join(binPath, file));
+      });
+      console.log(`⚠️ [INFO] Baixando: ${asset.name} (${suffix})`);
+      await fetch(asset.browser_download_url).then(r => r.body.pipe(fs.createWriteStream(filePath)));
+      if (platform === 'linux' || platform === 'android') fs.chmodSync(filePath, 0o755);
+      console.log(`✅ [SUCESSO] Binário baixado e salvo como: ${name}`);
+    } else {
+      console.error(`❌ [ERRO] Asset não encontrado para o binário: ${suffix}`);
+    }
     fs.writeFileSync(versionFile, tag_name);
-    console.log(`Repositório atualizado para a versão: ${tag_name}`);
+    console.log(`⚠️ [INFO] Repositório atualizado para a versão: ${tag_name}`);
   }
 })();
-
-
-
 
 const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
 const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
-
-
-
 async function clearSystemTempDir() {
-try {
-exec(`rm -rf ${tempDirSystem}/*`);
-} catch {};
-try {
-exec(`rm ${tempDirSystem}/*`);
-} catch {};
-try {
-exec(`rm -rf ${tempDirSystem}/*`);
-} catch {};
-try {
-exec(`rm ${tempDirSystem}/*`);
-} catch {};
-return true;
-};
-
-
-
+  try {
+    exec(`rm -rf ${tempDirSystem}/*`, (err) => {
+    });
+    exec(`rm ${tempDirSystem}/*`, (err) => {
+    });
+  } catch (error) {
+    console.error(`[ERRO] Falha ao limpar diretório temporário: ${error.message}`);
+  }
+  return true;
+}
 
 detectSystemInfo((error, architecture, platform) => {
-if (error) return console.error(`❌ [ERROR] Ao detectar o sistema: ${error.message}`);
-if (platform === 'android') {
-HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_py");
-console.log(`📱 [PLATAFORMA] -> Sistema Android detectado.`);
-console.log(`🚀 [@hiudyy/ytdl] -> Módulo inicializado com Python para Android.`);
-return;};
-if (platform !== 'linux' && platform !== 'android') return console.error(`❌ [PLATAFORMA] -> Este módulo é compatível apenas com sistemas Linux e Android.`);
-console.log(`✅ [PLATAFORMA] -> Sistema Linux detectado.`);
-switch (architecture) {
-case 'x64':
-HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl");
-console.log(`💻 [ARQUITETURA] -> Arquitetura x64 detectada.`);
-break;
-case 'arm':
-HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_v7");
-console.log(`🤖 [ARQUITETURA] -> Arquitetura ARM detectada.`);
-break;
-case 'arm64':
-HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_64");
-console.log(`🔧 [ARQUITETURA] -> Arquitetura ARM64 detectada.`);
-break;
-default:
-console.error(`❌ [ARQUITETURA] -> Arquitetura não suportada: ${architecture}`);
-return;}
-console.log(`✅ [@hiudyy/ytdl] -> Módulo inicializado com sucesso na arquitetura: ${architecture}.`);});
+  if (error) return console.error(`❌ [ERRO] Ao detectar o sistema: ${error.message}`);
+  if (platform === 'android') {
+    HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_py");
+    console.log(`📱 [PLATAFORMA] Sistema Android detectado.`);
+    console.log(`🚀 [@hiudyy/ytdl] Módulo inicializado com Python para Android.`);
+    return;
+  }
+  if (platform !== 'linux' && platform !== 'win32') {
+    return console.error(`❌ [PLATAFORMA] Este módulo é compatível apenas com sistemas Linux, Android e Windows.`);
+  }
+  console.log(`✅ [PLATAFORMA] Sistema detectado: ${platform}.`);
+
+  switch (architecture) {
+    case 'x64':
+      HiudyyDLPath = path.join(__dirname, platform === 'win32' ? "../bin/hiudyydl_win_x64.zip" : "../bin/hiudyydl");
+      console.log(`💻 [ARQUITETURA] Arquitetura x64 detectada.`);
+      break;
+    case 'arm':
+      HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_v7");
+      console.log(`🤖 [ARQUITETURA] Arquitetura ARM detectada.`);
+      break;
+    case 'arm64':
+      HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_64");
+      console.log(`🔧 [ARQUITETURA] Arquitetura ARM64 detectada.`);
+      break;
+    case 'x86':
+      HiudyyDLPath = path.join(__dirname, "../bin/hiudyydl_win_x86.zip");
+      console.log(`💻 [ARQUITETURA] Arquitetura x86 detectada.`);
+      break;
+    default:
+      console.error(`❌ [ARQUITETURA] Arquitetura não suportada: ${architecture}`);
+      return;
+  }
+
+  console.log(`✅ [@hiudyy/ytdl] Módulo inicializado com sucesso na arquitetura: ${architecture}.`);
+});
 
 
 
