@@ -64,7 +64,7 @@ import fetch from 'node-fetch';
   }
 })();
 
-const cookiesPath = path.join(__dirname, "../bin/cookies.txt");
+const cookiesPath = path.join(__dirname, "../dist/cookies.txt");
 const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
