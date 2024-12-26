@@ -108,8 +108,10 @@ const args = ["--no-cache-dir", "-F", "--cookies", cookiePath, url];
 return new Promise((resolve) => {
 execFile(HiudyyDLPath, args, (error, stdout, stderr) => {
 if (error) {
-if (stderr.includes('This content isn')) {
+if (stderr.includes('This content isn') || (error.message && error.message.includes('This content isn'))) {
 resolve(false);
+} else {
+resolve(true);
 }
 } else {
 resolve(true);

@@ -65,7 +65,6 @@ const fetch = require('node-fetch');
 })();
 
 const tempPath = path.join(__dirname, "../temp");
-const cookiePath2 = path.join(__dirname, "../dist/cookie.txt");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
@@ -101,8 +100,6 @@ return tempCookiePath;
 }}
 throw new Error('❌ [ERRO] Nenhum cookie válido foi encontrado.');
 };
-
-//findValidCookie();
 
 async function testCookie(cookiePath) {
 const url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
