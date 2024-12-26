@@ -65,7 +65,6 @@ const fetch = require('node-fetch');
 })();
 
 const tempPath = path.join(__dirname, "../temp");
-const cookiePath2 = path.join(__dirname, "../dist/cookie.txt");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
@@ -92,7 +91,7 @@ const cookiesArray = loadAndShuffleCookies();
 const testedCookies = new Set();
 for (const cookie of cookiesArray) {
 if (testedCookies.has(cookie)) continue;
-const tempCookiePath = path.join(__dirname, '../dist/cookie.txt');
+const tempCookiePath = path.join(__dirname, '../dist/temp_cookie.txt');
 fs.writeFileSync(tempCookiePath, cookie);
 const isValid = await testCookie(tempCookiePath);
 testedCookies.add(cookie);
@@ -102,7 +101,6 @@ return tempCookiePath;
 throw new Error('❌ [ERRO] Nenhum cookie válido foi encontrado.');
 };
 
-//findValidCookie();
 
 async function testCookie(cookiePath) {
 const url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
@@ -112,8 +110,6 @@ execFile(HiudyyDLPath, args, (error, stdout, stderr) => {
 if (error) {
 if (stderr.includes('This content isn')) {
 resolve(false);
-} else {
-resolve(true);
 }
 } else {
 resolve(true);
