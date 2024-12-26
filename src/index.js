@@ -64,7 +64,6 @@ const fetch = require('node-fetch');
   }
 })();
 
-const cookiesPath = path.join(__dirname, "../dist/cookies.txt");
 const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
@@ -80,6 +79,41 @@ async function clearSystemTempDir() {
   }
   return true;
 }
+
+function loadAndShuffleCookies() {
+const cookiesPath = path.join(__dirname, "../dist/cookies.json");
+const cookiesArray = JSON.parse(fs.readFileSync(cookiesPath, 'utf8'));
+return cookiesArray.sort(() => Math.random() - 0.5);
+};
+
+async function findValidCookie() {
+const cookiesArray = loadAndShuffleCookies();
+const testedCookies = new Set();
+for (const cookie of cookiesArray) {
+if (testedCookies.has(cookie)) continue;
+const tempCookiePath = path.join(tempPath, 'temp_cookie.txt');
+fs.writeFileSync(tempCookiePath, cookie);
+const isValid = await testCookie(tempCookiePath);
+testedCookies.add(cookie);
+if (isValid) {
+return tempCookiePath;
+}}
+throw new Error('❌ [ERRO] Nenhum cookie válido foi encontrado.');
+};
+
+
+async function testCookie(cookiePath) {
+const url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+const args = ["--no-cache-dir", "-F", "--cookies", cookiePath, url];
+return new Promise((resolve) => {
+execFile(HiudyyDLPath, args, (error, stdout, stderr) => {
+if (error) {
+if (stderr.includes('This content isn')) {
+resolve(false);
+}
+} else {
+resolve(true);
+}})})};
 
 detectSystemInfo((error, architecture, platform) => {
   if (error) return console.error(`❌ [ERRO] Ao detectar o sistema: ${error.message}`);
@@ -146,7 +180,8 @@ async function ytmp3(input) {
 await clearSystemTempDir();
 const url = getVideoUrl(input);
 const output = path.join(tempPath, generateRandomName("m4a"));
-const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", cookiesPath, "-o", output, url];
+const validCookiePath = await findValidCookie();
+const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", validCookiePath, "-o", output, url];
 return await processOutput(args, output);
 };
 
@@ -157,7 +192,8 @@ async function ytmp4(input) {
 await clearSystemTempDir();
 const url = getVideoUrl(input);
 const output = path.join(tempPath, generateRandomName("mp4"));
-const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", cookiesPath, "-o", output, url];
+const validCookiePath = await findValidCookie();
+const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
 return await processOutput(args, output);
 };
 
@@ -173,7 +209,8 @@ const outputTemplate = path.join(tempPathDl, "%(title)s_%(id)s.%(ext)s");
 
 try {
 await ensureExecutable(HiudyyDLPath);
-const formatArgs = ["--no-cache-dir", "-F", "--cookies", cookiesPath, url];
+const validCookiePath = await findValidCookie();
+const formatArgs = ["--no-cache-dir", "-F", "--cookies", validCookiePath, url];
 
 const formats = await new Promise((resolve, reject) => {
 execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
@@ -188,15 +225,15 @@ const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats
 const downloadArgsList = [];
 
 if (hasVideo || !hasAudio) {
-downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings"]);
+downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
 };
 
 if (hasAudio) {
-downloadArgsList.push(["--no-cache-dir", "-f", formats.includes('m4a') ? "bestaudio[ext=m4a]" : "bestaudio", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings"]);
+downloadArgsList.push(["--no-cache-dir", "-f", formats.includes('m4a') ? "bestaudio[ext=m4a]" : "bestaudio", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
 };
 
 if (hasImages) {
-downloadArgsList.push(["--no-cache-dir", "-f", "best", "--cookies", cookiesPath, "--output", outputTemplate, "--no-warnings", "--yes-playlist"]);
+downloadArgsList.push(["--no-cache-dir", "-f", "best", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings", "--yes-playlist"]);
 };
 
 for (const args of downloadArgsList) {
