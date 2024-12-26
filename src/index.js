@@ -91,7 +91,7 @@ const cookiesArray = loadAndShuffleCookies();
 const testedCookies = new Set();
 for (const cookie of cookiesArray) {
 if (testedCookies.has(cookie)) continue;
-const tempCookiePath = path.join(tempPath, 'temp_cookie.txt');
+const tempCookiePath = path.join(__dirname, '../dist/temp_cookie.txt');
 fs.writeFileSync(tempCookiePath, cookie);
 const isValid = await testCookie(tempCookiePath);
 testedCookies.add(cookie);
