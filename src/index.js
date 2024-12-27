@@ -104,17 +104,28 @@ throw new Error('❌ [ERRO] Nenhum cookie válido foi encontrado.');
 async function testCookie(cookiePath) {
 const url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 const args = ["--no-cache-dir", "-F", "--cookies", cookiePath, url];
-return new Promise((resolve) => {
+return new Promise((resolve, reject) => {
 execFile(HiudyyDLPath, args, (error, stdout, stderr) => {
 if (error) {
-if (stderr.includes('This content isn') || (error.message && error.message.includes('This content isn'))) {
+if (HiudyyDLPath.includes('hiudyydl_py')) {
+execFile('python', [HiudyyDLPath, ...args], (pyErr, pyStdout, pyStderr) => {
+if (pyErr) {
+if (pyStderr.includes('This content isn') || (pyErr.message && pyErr.message.includes('This content isn'))) {
 resolve(false);
 } else {
 resolve(true);
-}
+}} else {
+resolve(true);
+}});
+} else if (stderr.includes('This content isn') || (error.message && error.message.includes('This content isn'))) {
+resolve(false);
 } else {
 resolve(true);
-}})})};
+}} else {
+resolve(true);
+}});
+});
+}
 
 detectSystemInfo((error, architecture, platform) => {
   if (error) return console.error(`❌ [ERRO] Ao detectar o sistema: ${error.message}`);
