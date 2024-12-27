@@ -280,7 +280,7 @@ let mimetype = "";
 
 if ([".mp4", ".mkv", ".webm"].includes(extension)) {
 type = "video";
-mimetype = `video/${extension.replaceAll('.', '')}`;
+mimetype = `video/mp4`;
 } else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
 type = "audio";
 mimetype = `audio/mpeg`;
