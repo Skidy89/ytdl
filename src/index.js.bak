@@ -221,95 +221,160 @@ return await processOutput(args, output);
 
 
 async function alldl(input) {
-await clearSystemTempDir();
-const url = input.startsWith("http") ? input : getVideoUrl(input);
-const results = [];
-const tempPathDl = path.join(tempPath, `${Math.floor(Math.random() * 100000)}_${Math.floor(Math.random() * 100000)}`);
-const outputTemplate = path.join(tempPathDl, "%(title)s_%(id)s.%(ext)s");
+  await clearSystemTempDir();
+  const url = input.startsWith("http") ? input : getVideoUrl(input);
+  const results = [];
+  const tempPathDl = path.join(tempPath, `${Math.floor(Math.random() * 100000)}_${Math.floor(Math.random() * 100000)}`);
+  const outputTemplate = path.join(tempPathDl, "%(title)s_%(id)s.%(ext)s");
 
-try {
-await ensureExecutable(HiudyyDLPath);
-const validCookiePath = await findValidCookie();
-const formatArgs = ["--no-cache-dir", "-F", "--cookies", validCookiePath, url];
+  try {
+    await ensureExecutable(HiudyyDLPath);
+    const validCookiePath = await findValidCookie();
+    const formatArgs = ["--no-cache-dir", "-F", "--cookies", validCookiePath, url];
 
-const formats = await new Promise((resolve, reject) => {
-execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
-if (error) return reject(error);
-resolve(stdout.trim());
-})});
+    const formats = await new Promise((resolve, reject) => {
+      execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
+        if (error) return reject(error);
+        resolve(stdout.trim());
+      });
+    });
 
-const hasAudio = /\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(formats) || formats.includes('audio');
-const hasVideo = /\.(mp4|mkv|avi|mov|wmv|flv|webm)$/i.test(formats) || formats.includes('video');
-const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats.includes('image');
+    const hasAudio = /\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(formats) || formats.includes('audio');
+    const hasVideo = /\.(mp4|mkv|avi|mov|wmv|flv|webm)$/i.test(formats) || formats.includes('video');
+    const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats.includes('image');
 
-const downloadArgsList = [];
+    const downloadArgsList = [];
 
-if (hasVideo || !hasAudio) {
-downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
-};
+    if (hasVideo || !hasAudio) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        "bestvideo+bestaudio/best",
+        "--merge-output-format",
+        "mp4",
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+      ]);
+    }
 
-if (hasAudio) {
-downloadArgsList.push(["--no-cache-dir", "-f", formats.includes('m4a') ? "bestaudio[ext=m4a]" : "bestaudio", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
-};
+    if (hasAudio) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        formats.includes("m4a") ? "bestaudio[ext=m4a]" : "bestaudio",
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+      ]);
+    }
 
-if (hasImages) {
-downloadArgsList.push(["--no-cache-dir", "-f", "best", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings", "--yes-playlist"]);
-};
+    if (hasImages) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        "best",
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+        "--yes-playlist",
+      ]);
+    }
 
-for (const args of downloadArgsList) {
-await new Promise((resolve, reject) => {
-execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
-if (error) {
-if (HiudyyDLPath.includes('hiudyydl_py')) {
-execFile('python', [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
-if (pyErr) return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
-resolve(pyStdout.trim())});
-} else {
-return reject(`Hiudyydl error: ${stderr || error.message}`);
-}} else {
-resolve(stdout.trim());
-}})})};
+    for (const args of downloadArgsList) {
+      await new Promise((resolve, reject) => {
+        execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
+          if (error) {
+            if (HiudyyDLPath.includes("hiudyydl_py")) {
+              execFile("python", [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
+                if (pyErr) return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
+                resolve(pyStdout.trim());
+              });
+            } else {
+              return reject(`Hiudyydl error: ${stderr || error.message}`);
+            }
+          } else {
+            resolve(stdout.trim());
+          }
+        });
+      });
+    }
 
-const files = fs.readdirSync(tempPathDl);
-for (const file of files) {
-const filePath = path.join(tempPathDl, file);
-const buffer = fs.readFileSync(filePath);
-const extension = path.extname(file).toLowerCase();
-let type = "";
-let mimetype = "";
-
-if ([".mp4", ".mkv", ".webm"].includes(extension)) {
-type = "video";
-mimetype = `video/mp4`;
-} else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
-type = "audio";
-mimetype = `audio/mpeg`;
-} else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
-type = "image";
-mimetype = `image/jpg`;
-} else if ([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".ppt", ".pptx"].includes(extension)) {
-type = "document";
-if (extension === ".pdf") mimetype = "application/pdf";
-if (extension === ".doc" || extension === ".docx") mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-if (extension === ".xls" || extension === ".xlsx") mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-if (extension === ".txt") mimetype = "text/plain";
-if (extension === ".ppt" || extension === ".pptx") mimetype = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-} else if ([".zip"].includes(extension)) {
-type = "document";
-mimetype = "application/zip";
-} else if ([".apk"].includes(extension)) {
-type = "document";
-mimetype = "application/vnd.android.package-archive";
-} else {
-type = "unknown";
-mimetype = "application/octet-stream";
+    const files = fs.readdirSync(tempPathDl);
+    for (const file of files) {
+      const filePath = path.join(tempPathDl, file);
+      const buffer = fs.readFileSync(filePath);
+      const extension = path.extname(file).toLowerCase();
+      let type = "";
+      let mimetype = "";
+      if ([".mp4", ".mkv", ".webm"].includes(extension)) {
+        const convertedFilePath = filePath.replace(extension, "_converted.mp4");
+        await convertToCompatibleVideo(filePath, convertedFilePath);
+        fs.unlinkSync(filePath);
+        const convertedBuffer = fs.readFileSync(convertedFilePath);
+        type = "video";
+        mimetype = `video/mp4`;
+        results.push({ type, src: convertedBuffer, mimetype });
+        fs.unlinkSync(convertedFilePath);
+      } else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
+        type = "audio";
+        mimetype = `audio/mpeg`;
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
+      } else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
+        type = "image";
+        mimetype = `image/jpg`;
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
+      } else if ([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".ppt", ".pptx"].includes(extension)) {
+        type = "document";
+        if (extension === ".pdf") mimetype = "application/pdf";
+        if (extension === ".doc" || extension === ".docx") mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        if (extension === ".xls" || extension === ".xlsx") mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        if (extension === ".txt") mimetype = "text/plain";
+        if (extension === ".ppt" || extension === ".pptx") mimetype = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
+      } else if ([".zip"].includes(extension)) {
+        type = "document";
+        mimetype = "application/zip";
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
+      } else if ([".apk"].includes(extension)) {
+        type = "document";
+        mimetype = "application/vnd.android.package-archive";
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
+      } else {
+        type = "unknown";
+        mimetype = "application/octet-stream";
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (error) {
+    console.error("Error in alldl:", error.message);
+  }
+  return results;
 }
-results.push({ type, src: buffer, mimetype });
-fs.unlinkSync(filePath);
-}
-} catch (error) {
-}
-return results;
+
+async function convertToCompatibleVideo(inputPath, outputPath) {
+  return new Promise((resolve, reject) => {
+    const ffmpegCommand = `ffmpeg -i "${inputPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -movflags +faststart "${outputPath}"`;
+    exec(ffmpegCommand, (error, stdout, stderr) => {
+      if (error) {
+        console.error("FFmpeg error:", stderr || error.message);
+        return reject(error);
+      }
+      resolve();
+    });
+  });
 }
 
 
