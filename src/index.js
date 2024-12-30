@@ -197,24 +197,28 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
-await clearSystemTempDir();
-const url = getVideoUrl(input);
-const output = path.join(tempPath, generateRandomName("m4a"));
-const validCookiePath = await findValidCookie();
-const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", validCookiePath, "-o", output, url];
-return await processOutput(args, output);
+  await clearSystemTempDir();
+  const url = getVideoUrl(input);
+  const output = path.join(tempPath, generateRandomName("m4a"));
+  const validCookiePath = await findValidCookie();
+
+  const args = ["--no-cache-dir", "-f", "worstaudio", "--cookies", validCookiePath, "-o", output, url];
+  
+  return await processOutput(args, output);
 };
 
 
 
 
 async function ytmp4(input) {
-await clearSystemTempDir();
-const url = getVideoUrl(input);
-const output = path.join(tempPath, generateRandomName("mp4"));
-const validCookiePath = await findValidCookie();
-const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
-return await processOutput(args, output);
+  await clearSystemTempDir();
+  const url = getVideoUrl(input);
+  const output = path.join(tempPath, generateRandomName("mp4"));
+  const validCookiePath = await findValidCookie();
+
+  const args = ["--no-cache-dir", "-f", "bv*+ba/b", "--cookies", validCookiePath, "-o", output, url];
+  
+  return await processOutput(args, output);
 };
 
 
@@ -230,6 +234,8 @@ async function alldl(input) {
   try {
     await ensureExecutable(HiudyyDLPath);
     const validCookiePath = await findValidCookie();
+
+    // Argumentos para listar formatos disponíveis
     const formatArgs = ["--no-cache-dir", "-F", "--cookies", validCookiePath, url];
 
     const formats = await new Promise((resolve, reject) => {
@@ -239,17 +245,20 @@ async function alldl(input) {
       });
     });
 
+    // Detecta tipos de arquivos suportados
     const hasAudio = /\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(formats) || formats.includes('audio');
     const hasVideo = /\.(mp4|mkv|avi|mov|wmv|flv|webm)$/i.test(formats) || formats.includes('video');
     const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats.includes('image');
+    const hasDocument = /\.(pdf|doc|docx|xls|xlsx|txt|ppt|pptx|zip|apk)$/i.test(formats) || formats.includes('document');
 
     const downloadArgsList = [];
 
+    // Vídeo + Áudio com qualidade média
     if (hasVideo || !hasAudio) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "bestvideo+bestaudio/best",
+        "bv*+ba/b", // Baixa o vídeo e áudio com qualidade média (para não ser o melhor, mas também não o pior)
         "--merge-output-format",
         "mp4",
         "--cookies",
@@ -257,27 +266,33 @@ async function alldl(input) {
         "--output",
         outputTemplate,
         "--no-warnings",
+        "--socket-timeout", "10",
+        "--concurrent-fragments", "16",
       ]);
     }
 
+    // Áudio com qualidade mais baixa e rápido
     if (hasAudio) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        formats.includes("m4a") ? "bestaudio[ext=m4a]" : "bestaudio",
+        "worstaudio", // Pega o áudio mais rápido e de menor qualidade
         "--cookies",
         validCookiePath,
         "--output",
         outputTemplate,
         "--no-warnings",
+        "--socket-timeout", "10",
+        "--concurrent-fragments", "16",
       ]);
     }
 
+    // Imagens (para máxima velocidade, escolhe a pior)
     if (hasImages) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "best",
+        "worst", // Pega a imagem mais rápida (menor tamanho)
         "--cookies",
         validCookiePath,
         "--output",
@@ -287,6 +302,21 @@ async function alldl(input) {
       ]);
     }
 
+    // Documentos (normal, sem priorizar velocidade)
+    if (hasDocument) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        "best", // Pega o melhor documento disponível (geralmente é pequeno)
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+      ]);
+    }
+
+    // Executa os downloads conforme os parâmetros
     for (const args of downloadArgsList) {
       await new Promise((resolve, reject) => {
         execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
@@ -306,6 +336,7 @@ async function alldl(input) {
       });
     }
 
+    // Processa os arquivos baixados
     const files = fs.readdirSync(tempPathDl);
     for (const file of files) {
       const filePath = path.join(tempPathDl, file);
@@ -313,15 +344,12 @@ async function alldl(input) {
       const extension = path.extname(file).toLowerCase();
       let type = "";
       let mimetype = "";
+      
       if ([".mp4", ".mkv", ".webm"].includes(extension)) {
-        const convertedFilePath = filePath.replace(extension, "_converted.mp4");
-        await convertToCompatibleVideo(filePath, convertedFilePath);
-        fs.unlinkSync(filePath);
-        const convertedBuffer = fs.readFileSync(convertedFilePath);
         type = "video";
         mimetype = `video/mp4`;
-        results.push({ type, src: convertedBuffer, mimetype });
-        fs.unlinkSync(convertedFilePath);
+        results.push({ type, src: buffer, mimetype });
+        fs.unlinkSync(filePath);
       } else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
         type = "audio";
         mimetype = `audio/mpeg`;
@@ -358,9 +386,10 @@ async function alldl(input) {
         fs.unlinkSync(filePath);
       }
     }
-  } catch (error) {
-    console.error("Error in alldl:", error.message);
+  } catch (err) {
+    console.error("Erro ao baixar:", err);
   }
+
   return results;
 }
 
