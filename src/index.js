@@ -216,7 +216,7 @@ async function ytmp4(input) {
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };
@@ -255,20 +255,7 @@ async function alldl(input) {
 
     // Vídeo + Áudio com qualidade média
     if (hasVideo || !hasAudio) {
-      downloadArgsList.push([
-        "--no-cache-dir",
-        "-f",
-        "bestvideo+bestaudio/best",
-        "--merge-output-format",
-        "mp4",
-        "--cookies",
-        validCookiePath,
-        "--output",
-        outputTemplate,
-        "--no-warnings",
-        "--socket-timeout", "10",
-        "--concurrent-fragments", "16",
-      ]);
+      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
     }
 
     // Áudio com qualidade mais baixa e rápido
