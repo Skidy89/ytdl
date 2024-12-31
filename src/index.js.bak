@@ -197,24 +197,28 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
-await clearSystemTempDir();
-const url = getVideoUrl(input);
-const output = path.join(tempPath, generateRandomName("m4a"));
-const validCookiePath = await findValidCookie();
-const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", validCookiePath, "-o", output, url];
-return await processOutput(args, output);
+  await clearSystemTempDir();
+  const url = getVideoUrl(input);
+  const output = path.join(tempPath, generateRandomName("m4a"));
+  const validCookiePath = await findValidCookie();
+
+  const args = ["--no-cache-dir", "-f", "worstaudio", "--cookies", validCookiePath, "-o", output, url];
+  
+  return await processOutput(args, output);
 };
 
 
 
 
 async function ytmp4(input) {
-await clearSystemTempDir();
-const url = getVideoUrl(input);
-const output = path.join(tempPath, generateRandomName("mp4"));
-const validCookiePath = await findValidCookie();
-const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
-return await processOutput(args, output);
+  await clearSystemTempDir();
+  const url = getVideoUrl(input);
+  const output = path.join(tempPath, generateRandomName("mp4"));
+  const validCookiePath = await findValidCookie();
+
+  const args = ["--no-cache-dir", "-f", "bv*+ba/b", "--cookies", validCookiePath, "-o", output, url];
+  
+  return await processOutput(args, output);
 };
 
 
@@ -254,7 +258,7 @@ async function alldl(input) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "bv*+ba/b", // Baixa o vídeo e áudio com qualidade média (para não ser o melhor, mas também não o pior)
+        "bv*+ba/b",
         "--merge-output-format",
         "mp4",
         "--cookies",

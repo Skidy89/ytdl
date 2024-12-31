@@ -216,7 +216,7 @@ async function ytmp4(input) {
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bv*+ba/b", "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "bv*[height<=720]+ba[abr<=64]/bestaudio[abr<=64]", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };
@@ -258,7 +258,7 @@ async function alldl(input) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "bv*+ba/b", // Baixa o vídeo e áudio com qualidade média (para não ser o melhor, mas também não o pior)
+        "bestvideo+bestaudio/best",
         "--merge-output-format",
         "mp4",
         "--cookies",
