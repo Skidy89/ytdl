@@ -263,7 +263,7 @@ async function alldl(input) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "worstaudio", // Pega o áudio mais rápido e de menor qualidade
+        "worstaudio",
         "--cookies",
         validCookiePath,
         "--output",
@@ -274,12 +274,12 @@ async function alldl(input) {
       ]);
     }
 
-    // Imagens (para máxima velocidade, escolhe a pior)
+    // Imagens
     if (hasImages) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "worst", // Pega a imagem mais rápida (menor tamanho)
+        "worst",
         "--cookies",
         validCookiePath,
         "--output",
@@ -289,12 +289,12 @@ async function alldl(input) {
       ]);
     }
 
-    // Documentos (normal, sem priorizar velocidade)
+    // Documentos
     if (hasDocument) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "best", // Pega o melhor documento disponível (geralmente é pequeno)
+        "best",
         "--cookies",
         validCookiePath,
         "--output",
@@ -303,7 +303,7 @@ async function alldl(input) {
       ]);
     }
 
-    // Executa os downloads conforme os parâmetros
+    // Executa os downloads
     for (const args of downloadArgsList) {
       await new Promise((resolve, reject) => {
         execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
@@ -327,49 +327,42 @@ async function alldl(input) {
     const files = fs.readdirSync(tempPathDl);
     for (const file of files) {
       const filePath = path.join(tempPathDl, file);
-      const buffer = fs.readFileSync(filePath);
       const extension = path.extname(file).toLowerCase();
-      let type = "";
-      let mimetype = "";
-      
+      const convertedFilePath = path.join(tempPathDl, `converted_${path.basename(file, extension)}.mp4`);
+
       if ([".mp4", ".mkv", ".webm"].includes(extension)) {
-        type = "video";
-        mimetype = `video/mp4`;
-        results.push({ type, src: buffer, mimetype });
-        fs.unlinkSync(filePath);
+        try {
+          await convertToCompatibleVideo(filePath, convertedFilePath); // Converte o vídeo para formato compatível
+          const buffer = fs.readFileSync(convertedFilePath);
+          results.push({ type: "video", src: buffer, mimetype: "video/mp4" });
+          fs.unlinkSync(filePath); // Remove o arquivo original
+          fs.unlinkSync(convertedFilePath); // Remove o arquivo convertido
+        } catch (conversionError) {
+          console.error("Erro ao converter vídeo:", conversionError);
+        }
       } else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
-        type = "audio";
-        mimetype = `audio/mpeg`;
-        results.push({ type, src: buffer, mimetype });
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "audio", src: buffer, mimetype: "audio/mpeg" });
         fs.unlinkSync(filePath);
       } else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
-        type = "image";
-        mimetype = `image/jpg`;
-        results.push({ type, src: buffer, mimetype });
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "image", src: buffer, mimetype: "image/jpg" });
         fs.unlinkSync(filePath);
       } else if ([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".ppt", ".pptx"].includes(extension)) {
-        type = "document";
-        if (extension === ".pdf") mimetype = "application/pdf";
-        if (extension === ".doc" || extension === ".docx") mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-        if (extension === ".xls" || extension === ".xlsx") mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        if (extension === ".txt") mimetype = "text/plain";
-        if (extension === ".ppt" || extension === ".pptx") mimetype = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-        results.push({ type, src: buffer, mimetype });
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "document", src: buffer, mimetype: "application/octet-stream" });
         fs.unlinkSync(filePath);
       } else if ([".zip"].includes(extension)) {
-        type = "document";
-        mimetype = "application/zip";
-        results.push({ type, src: buffer, mimetype });
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "document", src: buffer, mimetype: "application/zip" });
         fs.unlinkSync(filePath);
       } else if ([".apk"].includes(extension)) {
-        type = "document";
-        mimetype = "application/vnd.android.package-archive";
-        results.push({ type, src: buffer, mimetype });
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "document", src: buffer, mimetype: "application/vnd.android.package-archive" });
         fs.unlinkSync(filePath);
       } else {
-        type = "unknown";
-        mimetype = "application/octet-stream";
-        results.push({ type, src: buffer, mimetype });
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "unknown", src: buffer, mimetype: "application/octet-stream" });
         fs.unlinkSync(filePath);
       }
     }
