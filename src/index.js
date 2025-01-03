@@ -21,33 +21,34 @@ let HiudyyDLPath = '';
 
 async function clearSystemTempDir(tempDirSystem) {
   try {
-    if (!fs.existsSync(tempDirSystem)) {
-      return;
-    }
+    exec(`[ -d "${tempDirSystem}" ]`, (err) => {
+      if (err) return;
 
-    const files = fs.readdirSync(tempDirSystem);
-    const now = Date.now();
-    const oneMinuteAgo = now - 1 * 60 * 1000;
+      exec(`ls -1 "${tempDirSystem}"`, (err, stdout) => {
+        if (err) return;
 
-    files.forEach(file => {
-      const filePath = path.join(tempDirSystem, file);
+        const files = stdout.trim().split('\n');
+        const now = Date.now();
+        const oneMinuteAgo = now - 1 * 60 * 1000;
 
-      try {
-        const stats = fs.statSync(filePath);
+        files.forEach(file => {
+          const filePath = path.join(tempDirSystem, file);
 
-        if (stats.mtimeMs < oneMinuteAgo) {
-          exec(`rm -rf "${filePath}"`, (err) => {
-            if (err) {
-              console.error(`Erro ao deletar ${filePath}:`, err.message);
+          exec(`stat -c "%Y" "${filePath}"`, (err, stdout) => {
+            if (err) return;
+
+            const mtime = parseInt(stdout.trim()) * 1000;
+            if (mtime < oneMinuteAgo) {
+              exec(`rm -rf "${filePath}"`, (err) => {
+                if (err) console.error(`Erro ao deletar ${filePath}:`, err.message);
+              });
             }
           });
-        }
-      } catch (err) {
-        console.error(`Erro ao processar ${filePath}:`, err.message);
-      }
+        });
+      });
     });
   } catch (err) {
-    console.error('Erro ao limpar o diretório temporário:', err.message);
+    console.error('Erro geral:', err.message);
   }
 }
 
@@ -370,5 +371,6 @@ ytvdl: ytmp4,
 alldl, 
 yts, 
 ai: ai,
-update: updateFile
+update: updateFile,
+clear: clearSystemTempDir
 };
