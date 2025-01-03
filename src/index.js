@@ -1,4 +1,4 @@
-const { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl } = require('./../dist/utils.js');
+const { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl, updateFile } = require('./../dist/utils.js');
 const { Innertube, UniversalCache } = require("youtubei.js");
 const { execFile, exec } = require("child_process");
 const ai = require('./ia/index.js');
@@ -10,81 +10,42 @@ const fetch = require('node-fetch');
 
 
 
-(async () => {
-  const binPath = path.join(__dirname, '../bin/');
-  const repos = [
-    {
-      repo: 'yt-dlp/yt-dlp',
-      versionFile: path.join(binPath, 'version.txt'),
-      files: [
-        { suffix: 'yt-dlp', name: 'hiudyydl_py', platforms: ['android'] },
-        { suffix: 'yt-dlp_linux', name: 'hiudyydl', platforms: ['linux', 'x64'] },
-        { suffix: 'yt-dlp_linux_aarch64', name: 'hiudyydl_64', platforms: ['linux', 'aarch64'] },
-        { suffix: 'yt-dlp_linux_armv7l', name: 'hiudyydl_v7', platforms: ['linux', 'arm'] },
-        { suffix: 'yt-dlp.exe', name: 'hiudyydl_win.exe', platforms: ['win32'] },
-        { suffix: 'yt-dlp_windows_x86.zip', name: 'hiudyydl_win_x86.zip', platforms: ['win32', 'x86'] },
-        { suffix: 'yt-dlp_windows_x64.zip', name: 'hiudyydl_win_x64.zip', platforms: ['win32', 'x64'] }
-      ]
-    }
-  ];
-  fs.mkdirSync(binPath, { recursive: true });
-  const platform = os.platform();
-  const arch = os.arch();
-  for (const { repo, versionFile, files } of repos) {
-    const { tag_name, assets } = await fetch(`https://api.github.com/repos/${repo}/releases/latest`).then(r => r.json());
-    const localVersion = fs.existsSync(versionFile) ? fs.readFileSync(versionFile, 'utf8').trim() : null;
-    if (localVersion === tag_name) {
-      continue;
-    }
-    let selectedFile = null;
-    for (const { suffix, name, platforms } of files) {
-      if (platforms.includes(platform) && (platform !== 'linux' || platforms.includes(arch))) {
-        selectedFile = { suffix, name };
-        break;
-      }
-    }
-    if (!selectedFile) {
-      continue;
-    }
-    const { suffix, name } = selectedFile;
-    const asset = assets.find(a => a.name.endsWith(suffix));
-    if (asset) {
-      const filePath = path.join(binPath, name);
-      fs.readdirSync(binPath).forEach(file => {
-        if (file !== name) fs.unlinkSync(path.join(binPath, file));
-      });
-      console.log(`⚠️ [INFO] Baixando a biblioteca`);
-      await fetch(asset.browser_download_url).then(r => r.body.pipe(fs.createWriteStream(filePath)));
-      console.log(`✅ [SUCESSO] Binário baixado e salvo como: ${name}`);
-    } else {
-      console.error(`❌ [ERRO] Asset não encontrado para o binário: ${suffix}`);
-    }
-    fs.writeFileSync(versionFile, tag_name);
-    console.log(`⚠️ [INFO] Repositório atualizado para a versão: ${tag_name}`);
-  }
-})();
+updateFile();
+
+
+
 
 const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
-async function clearSystemTempDir() {
+async function clearSystemTempDir(tempDirSystem) {
   try {
+    if (!fs.existsSync(tempDirSystem)) {
+      return;
+    }
+
     const files = fs.readdirSync(tempDirSystem);
     const now = Date.now();
-    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    const twoMinutesAgo = now - 2 * 60 * 1000;
+
     files.forEach(file => {
       const filePath = path.join(tempDirSystem, file);
-      const stats = fs.statSync(filePath);
-      if (stats.mtimeMs < fiveMinutesAgo) {
-        if (stats.isDirectory()) {
-          fs.rmSync(filePath, { recursive: true, force: true });
-        } else {
-          fs.unlinkSync(filePath);
+
+      try {
+        const stats = fs.statSync(filePath);
+
+        if (stats.mtimeMs < twoMinutesAgo) {
+          if (stats.isDirectory()) {
+            fs.rmSync(filePath, { recursive: true, force: true });
+          } else {
+            fs.unlinkSync(filePath);
+          }
         }
+      } catch {
       }
     });
-  } catch (error) {
+  } catch {
   }
 };
 
@@ -197,6 +158,7 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
+  await updateFile();
   await clearSystemTempDir();
   const url = getVideoUrl(input);
   const output = path.join(tempPath, generateRandomName("m4a"));
@@ -211,6 +173,7 @@ async function ytmp3(input) {
 
 
 async function ytmp4(input) {
+  await updateFile();
   await clearSystemTempDir();
   const url = getVideoUrl(input);
   const output = path.join(tempPath, generateRandomName("mp4"));
@@ -225,6 +188,7 @@ async function ytmp4(input) {
 
 
 async function alldl(input) {
+  await updateFile();
   await clearSystemTempDir();
   const url = input;
   const results = [];
@@ -263,7 +227,7 @@ async function alldl(input) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "worstaudio",
+        "bestaudio",
         "--cookies",
         validCookiePath,
         "--output",
@@ -279,7 +243,7 @@ async function alldl(input) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "worst",
+        "best",
         "--cookies",
         validCookiePath,
         "--output",
