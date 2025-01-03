@@ -164,7 +164,7 @@ async function ytmp3(input) {
   const output = path.join(tempPath, generateRandomName("m4a"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "worstaudio", "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "bestaudio", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };

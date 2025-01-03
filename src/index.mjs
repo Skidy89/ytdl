@@ -1,4 +1,4 @@
-import { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl } from './../dist/utils.js';
+import { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl, updateFile } from './../dist/utils.js';
 import { Innertube, UniversalCache } from "youtubei.js";
 import { execFile } from "child_process";
 import ai from './ia/index.js';
@@ -10,81 +10,42 @@ import fetch from 'node-fetch';
 
 
 
-(async () => {
-  const binPath = path.join(__dirname, '../bin/');
-  const repos = [
-    {
-      repo: 'yt-dlp/yt-dlp',
-      versionFile: path.join(binPath, 'version.txt'),
-      files: [
-        { suffix: 'yt-dlp', name: 'hiudyydl_py', platforms: ['android'] },
-        { suffix: 'yt-dlp_linux', name: 'hiudyydl', platforms: ['linux', 'x64'] },
-        { suffix: 'yt-dlp_linux_aarch64', name: 'hiudyydl_64', platforms: ['linux', 'aarch64'] },
-        { suffix: 'yt-dlp_linux_armv7l', name: 'hiudyydl_v7', platforms: ['linux', 'arm'] },
-        { suffix: 'yt-dlp.exe', name: 'hiudyydl_win.exe', platforms: ['win32'] },
-        { suffix: 'yt-dlp_windows_x86.zip', name: 'hiudyydl_win_x86.zip', platforms: ['win32', 'x86'] },
-        { suffix: 'yt-dlp_windows_x64.zip', name: 'hiudyydl_win_x64.zip', platforms: ['win32', 'x64'] }
-      ]
-    }
-  ];
-  fs.mkdirSync(binPath, { recursive: true });
-  const platform = os.platform();
-  const arch = os.arch();
-  for (const { repo, versionFile, files } of repos) {
-    const { tag_name, assets } = await fetch(`https://api.github.com/repos/${repo}/releases/latest`).then(r => r.json());
-    const localVersion = fs.existsSync(versionFile) ? fs.readFileSync(versionFile, 'utf8').trim() : null;
-    if (localVersion === tag_name) {
-      continue;
-    }
-    let selectedFile = null;
-    for (const { suffix, name, platforms } of files) {
-      if (platforms.includes(platform) && (platform !== 'linux' || platforms.includes(arch))) {
-        selectedFile = { suffix, name };
-        break;
-      }
-    }
-    if (!selectedFile) {
-      continue;
-    }
-    const { suffix, name } = selectedFile;
-    const asset = assets.find(a => a.name.endsWith(suffix));
-    if (asset) {
-      const filePath = path.join(binPath, name);
-      fs.readdirSync(binPath).forEach(file => {
-        if (file !== name) fs.unlinkSync(path.join(binPath, file));
-      });
-      console.log(`⚠️ [INFO] Baixando a biblioteca`);
-      await fetch(asset.browser_download_url).then(r => r.body.pipe(fs.createWriteStream(filePath)));
-      console.log(`✅ [SUCESSO] Binário baixado e salvo como: ${name}`);
-    } else {
-      console.error(`❌ [ERRO] Asset não encontrado para o binário: ${suffix}`);
-    }
-    fs.writeFileSync(versionFile, tag_name);
-    console.log(`⚠️ [INFO] Repositório atualizado para a versão: ${tag_name}`);
-  }
-})();
+updateFile();
+
+
+
 
 const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
-async function clearSystemTempDir() {
+async function clearSystemTempDir(tempDirSystem) {
   try {
+    if (!fs.existsSync(tempDirSystem)) {
+      return;
+    }
+
     const files = fs.readdirSync(tempDirSystem);
     const now = Date.now();
-    const fiveMinutesAgo = now - 5 * 60 * 1000;
+    const twoMinutesAgo = now - 2 * 60 * 1000;
+
     files.forEach(file => {
       const filePath = path.join(tempDirSystem, file);
-      const stats = fs.statSync(filePath);
-      if (stats.mtimeMs < fiveMinutesAgo) {
-        if (stats.isDirectory()) {
-          fs.rmSync(filePath, { recursive: true, force: true });
-        } else {
-          fs.unlinkSync(filePath);
+
+      try {
+        const stats = fs.statSync(filePath);
+
+        if (stats.mtimeMs < twoMinutesAgo) {
+          if (stats.isDirectory()) {
+            fs.rmSync(filePath, { recursive: true, force: true });
+          } else {
+            fs.unlinkSync(filePath);
+          }
         }
+      } catch {
       }
     });
-  } catch (error) {
+  } catch {
   }
 };
 
@@ -99,7 +60,7 @@ const cookiesArray = loadAndShuffleCookies();
 const testedCookies = new Set();
 for (const cookie of cookiesArray) {
 if (testedCookies.has(cookie)) continue;
-const tempCookiePath = path.join(__dirname, '../dist/temp_cookie.txt');
+const tempCookiePath = path.join(__dirname, '../dist/cookie.txt');
 fs.writeFileSync(tempCookiePath, cookie);
 const isValid = await testCookie(tempCookiePath);
 testedCookies.add(cookie);
@@ -108,7 +69,6 @@ return tempCookiePath;
 }}
 throw new Error('❌ [ERRO] Nenhum cookie válido foi encontrado.');
 };
-
 
 async function testCookie(cookiePath) {
 const url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
@@ -198,119 +158,196 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
-await clearSystemTempDir();
-const url = getVideoUrl(input);
-const output = path.join(tempPath, generateRandomName("m4a"));
-const validCookiePath = await findValidCookie();
-const args = ["--no-cache-dir", "-f", "bestaudio[ext=m4a]", "--cookies", validCookiePath, "-o", output, url];
-return await processOutput(args, output);
+  await updateFile();
+  await clearSystemTempDir();
+  const url = getVideoUrl(input);
+  const output = path.join(tempPath, generateRandomName("m4a"));
+  const validCookiePath = await findValidCookie();
+
+  const args = ["--no-cache-dir", "-f", "bestaudio", "--cookies", validCookiePath, "-o", output, url];
+  
+  return await processOutput(args, output);
 };
 
 
 
 
 async function ytmp4(input) {
-await clearSystemTempDir();
-const url = getVideoUrl(input);
-const output = path.join(tempPath, generateRandomName("mp4"));
-const validCookiePath = await findValidCookie();
-const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
-return await processOutput(args, output);
+  await updateFile();
+  await clearSystemTempDir();
+  const url = getVideoUrl(input);
+  const output = path.join(tempPath, generateRandomName("mp4"));
+  const validCookiePath = await findValidCookie();
+
+  const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
+  
+  return await processOutput(args, output);
 };
 
 
 
 
 async function alldl(input) {
-await clearSystemTempDir();
-const url = input.startsWith("http") ? input : getVideoUrl(input);
-const results = [];
-const tempPathDl = path.join(tempPath, `${Math.floor(Math.random() * 100000)}_${Math.floor(Math.random() * 100000)}`);
-const outputTemplate = path.join(tempPathDl, "%(title)s_%(id)s.%(ext)s");
+  await updateFile();
+  await clearSystemTempDir();
+  const url = input;
+  const results = [];
+  const tempPathDl = path.join(tempPath, `${Math.floor(Math.random() * 100000)}_${Math.floor(Math.random() * 100000)}`);
+  const outputTemplate = path.join(tempPathDl, "%(title)s_%(id)s.%(ext)s");
 
-try {
-await ensureExecutable(HiudyyDLPath);
-const validCookiePath = await findValidCookie();
-const formatArgs = ["--no-cache-dir", "-F", "--cookies", validCookiePath, url];
+  try {
+    await ensureExecutable(HiudyyDLPath);
+    const validCookiePath = await findValidCookie();
 
-const formats = await new Promise((resolve, reject) => {
-execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
-if (error) return reject(error);
-resolve(stdout.trim());
-})});
+    // Argumentos para listar formatos disponíveis
+    const formatArgs = ["--no-cache-dir", "-F", "--cookies", validCookiePath, url];
 
-const hasAudio = /\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(formats) || formats.includes('audio');
-const hasVideo = /\.(mp4|mkv|avi|mov|wmv|flv|webm)$/i.test(formats) || formats.includes('video');
-const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats.includes('image');
+    const formats = await new Promise((resolve, reject) => {
+      execFile(HiudyyDLPath, formatArgs, (error, stdout) => {
+        if (error) return reject(error);
+        resolve(stdout.trim());
+      });
+    });
 
-const downloadArgsList = [];
+    // Detecta tipos de arquivos suportados
+    const hasAudio = /\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(formats) || formats.includes('audio');
+    const hasVideo = /\.(mp4|mkv|avi|mov|wmv|flv|webm)$/i.test(formats) || formats.includes('video');
+    const hasImages = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(formats) || formats.includes('image');
+    const hasDocument = /\.(pdf|doc|docx|xls|xlsx|txt|ppt|pptx|zip|apk)$/i.test(formats) || formats.includes('document');
 
-if (hasVideo || !hasAudio) {
-downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
-};
+    const downloadArgsList = [];
 
-if (hasAudio) {
-downloadArgsList.push(["--no-cache-dir", "-f", formats.includes('m4a') ? "bestaudio[ext=m4a]" : "bestaudio", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
-};
+    // Vídeo + Áudio com qualidade média
+    if (hasVideo || !hasAudio) {
+      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
+    }
 
-if (hasImages) {
-downloadArgsList.push(["--no-cache-dir", "-f", "best", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings", "--yes-playlist"]);
-};
+    // Áudio com qualidade mais baixa e rápido
+    if (hasAudio) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        "bestaudio",
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+        "--socket-timeout", "10",
+        "--concurrent-fragments", "16",
+      ]);
+    }
 
-for (const args of downloadArgsList) {
-await new Promise((resolve, reject) => {
-execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
-if (error) {
-if (HiudyyDLPath.includes('hiudyydl_py')) {
-execFile('python', [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
-if (pyErr) return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
-resolve(pyStdout.trim())});
-} else {
-return reject(`Hiudyydl error: ${stderr || error.message}`);
-}} else {
-resolve(stdout.trim());
-}})})};
+    // Imagens
+    if (hasImages) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        "best",
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+        "--yes-playlist",
+      ]);
+    }
 
-const files = fs.readdirSync(tempPathDl);
-for (const file of files) {
-const filePath = path.join(tempPathDl, file);
-const buffer = fs.readFileSync(filePath);
-const extension = path.extname(file).toLowerCase();
-let type = "";
-let mimetype = "";
+    // Documentos
+    if (hasDocument) {
+      downloadArgsList.push([
+        "--no-cache-dir",
+        "-f",
+        "best",
+        "--cookies",
+        validCookiePath,
+        "--output",
+        outputTemplate,
+        "--no-warnings",
+      ]);
+    }
 
-if ([".mp4", ".mkv", ".webm"].includes(extension)) {
-type = "video";
-mimetype = `video/mp4`;
-} else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
-type = "audio";
-mimetype = `audio/mpeg`;
-} else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
-type = "image";
-mimetype = `image/jpg`;
-} else if ([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".ppt", ".pptx"].includes(extension)) {
-type = "document";
-if (extension === ".pdf") mimetype = "application/pdf";
-if (extension === ".doc" || extension === ".docx") mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-if (extension === ".xls" || extension === ".xlsx") mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-if (extension === ".txt") mimetype = "text/plain";
-if (extension === ".ppt" || extension === ".pptx") mimetype = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-} else if ([".zip"].includes(extension)) {
-type = "document";
-mimetype = "application/zip";
-} else if ([".apk"].includes(extension)) {
-type = "document";
-mimetype = "application/vnd.android.package-archive";
-} else {
-type = "unknown";
-mimetype = "application/octet-stream";
+    // Executa os downloads
+    for (const args of downloadArgsList) {
+      await new Promise((resolve, reject) => {
+        execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
+          if (error) {
+            if (HiudyyDLPath.includes("hiudyydl_py")) {
+              execFile("python", [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
+                if (pyErr) return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
+                resolve(pyStdout.trim());
+              });
+            } else {
+              return reject(`Hiudyydl error: ${stderr || error.message}`);
+            }
+          } else {
+            resolve(stdout.trim());
+          }
+        });
+      });
+    }
+
+    // Processa os arquivos baixados
+    const files = fs.readdirSync(tempPathDl);
+    for (const file of files) {
+      const filePath = path.join(tempPathDl, file);
+      const extension = path.extname(file).toLowerCase();
+      const convertedFilePath = path.join(tempPathDl, `converted_${path.basename(file, extension)}.mp4`);
+
+      if ([".mp4", ".mkv", ".webm"].includes(extension)) {
+        try {
+          await convertToCompatibleVideo(filePath, convertedFilePath); // Converte o vídeo para formato compatível
+          const buffer = fs.readFileSync(convertedFilePath);
+          results.push({ type: "video", src: buffer, mimetype: "video/mp4" });
+          fs.unlinkSync(filePath); // Remove o arquivo original
+          fs.unlinkSync(convertedFilePath); // Remove o arquivo convertido
+        } catch (conversionError) {
+          console.error("Erro ao converter vídeo:", conversionError);
+        }
+      } else if ([".mp3", ".m4a", ".opus"].includes(extension)) {
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "audio", src: buffer, mimetype: "audio/mpeg" });
+        fs.unlinkSync(filePath);
+      } else if ([".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "image", src: buffer, mimetype: "image/jpg" });
+        fs.unlinkSync(filePath);
+      } else if ([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".ppt", ".pptx"].includes(extension)) {
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "document", src: buffer, mimetype: "application/octet-stream" });
+        fs.unlinkSync(filePath);
+      } else if ([".zip"].includes(extension)) {
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "document", src: buffer, mimetype: "application/zip" });
+        fs.unlinkSync(filePath);
+      } else if ([".apk"].includes(extension)) {
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "document", src: buffer, mimetype: "application/vnd.android.package-archive" });
+        fs.unlinkSync(filePath);
+      } else {
+        const buffer = fs.readFileSync(filePath);
+        results.push({ type: "unknown", src: buffer, mimetype: "application/octet-stream" });
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (err) {
+    console.error("Erro ao baixar:", err);
+  }
+
+  return results;
 }
-results.push({ type, src: buffer, mimetype });
-fs.unlinkSync(filePath);
-}
-} catch (error) {
-}
-return results;
+
+async function convertToCompatibleVideo(inputPath, outputPath) {
+  return new Promise((resolve, reject) => {
+    const ffmpegCommand = `ffmpeg -i "${inputPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -movflags +faststart "${outputPath}"`;
+    exec(ffmpegCommand, (error, stdout, stderr) => {
+      if (error) {
+        console.error("FFmpeg error:", stderr || error.message);
+        return reject(error);
+      }
+      resolve();
+    });
+  });
 }
 
 
