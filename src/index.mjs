@@ -158,13 +158,12 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
-  await updateFile();
   await clearSystemTempDir();
   const url = getVideoUrl(input);
   const output = path.join(tempPath, generateRandomName("m4a"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bestaudio", "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "worstaudio", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };
@@ -173,13 +172,12 @@ async function ytmp3(input) {
 
 
 async function ytmp4(input) {
-  await updateFile();
   await clearSystemTempDir();
   const url = getVideoUrl(input);
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bestvideo+bestaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "bestvideo+worstaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };
@@ -188,7 +186,6 @@ async function ytmp4(input) {
 
 
 async function alldl(input) {
-  await updateFile();
   await clearSystemTempDir();
   const url = input;
   const results = [];
@@ -219,7 +216,7 @@ async function alldl(input) {
 
     // Vídeo + Áudio com qualidade média
     if (hasVideo || !hasAudio) {
-      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
+      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+worstaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
     }
 
     // Áudio com qualidade mais baixa e rápido
@@ -227,7 +224,7 @@ async function alldl(input) {
       downloadArgsList.push([
         "--no-cache-dir",
         "-f",
-        "bestaudio",
+        "worstaudio",
         "--cookies",
         validCookiePath,
         "--output",
@@ -370,7 +367,8 @@ ytadl: ytmp3,
 ytvdl: ytmp4, 
 alldl: alldl, 
 yts: yts, 
-ai: ai
+ai: ai,
+update: updateFile
 };
 
 export default expotszz;
