@@ -21,7 +21,7 @@ let HiudyyDLPath = '';
 
 async function clearSystemTempDir(tempDirSystem) {
   try {
-    const command = "find " + tempDirSystem + " -mmin +2 -exec rm -rf {} \\;";
+    const command = "rm -rf " + tempDirSystem + "/*";
     exec(command, (err) => {
       if (err) {
         console.error('Erro ao limpar diretório temporário:', err.message);

@@ -21,33 +21,17 @@ let HiudyyDLPath = '';
 
 async function clearSystemTempDir(tempDirSystem) {
   try {
-    if (!fs.existsSync(tempDirSystem)) {
-      return;
-    }
-
-    const files = fs.readdirSync(tempDirSystem);
-    const now = Date.now();
-    const twoMinutesAgo = now - 2 * 60 * 1000;
-
-    files.forEach(file => {
-      const filePath = path.join(tempDirSystem, file);
-
-      try {
-        const stats = fs.statSync(filePath);
-
-        if (stats.mtimeMs < twoMinutesAgo) {
-          if (stats.isDirectory()) {
-            fs.rmSync(filePath, { recursive: true, force: true });
-          } else {
-            fs.unlinkSync(filePath);
-          }
-        }
-      } catch {
+    const command = "rm -rf " + tempDirSystem + "/*";
+    exec(command, (err) => {
+      if (err) {
+        console.error('Erro ao limpar diretório temporário:', err.message);
+      } else {
       }
     });
-  } catch {
+  } catch (err) {
+    console.error('Erro geral:', err.message);
   }
-};
+}
 
 function loadAndShuffleCookies() {
 const cookiesPath = path.join(__dirname, "../dist/cookies.json");
