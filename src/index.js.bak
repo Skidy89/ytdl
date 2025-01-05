@@ -19,15 +19,10 @@ const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
-async function clearSystemTempDir() {
+async function clearSystemTempDir(tempDirSystem) {
   try {
     const command = "rm -rf " + tempDirSystem + "/*";
-    exec(command, (err) => {
-      if (err) {
-        console.error('Erro ao limpar diretório temporário:', err.message);
-      } else {
-      }
-    });
+    return exec(command);
   } catch (err) {
     console.error('Erro geral:', err.message);
   }
