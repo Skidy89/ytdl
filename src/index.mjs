@@ -19,7 +19,7 @@ const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = os.tmpdir();
 let HiudyyDLPath = '';
 
-async function clearSystemTempDir(tempDirSystem) {
+async function clearSystemTempDir() {
   try {
     const command = "rm -rf " + tempDirSystem + "/*";
     exec(command, (err) => {
