@@ -124,15 +124,17 @@ detectSystemInfo((error, architecture, platform) => {
 async function processOutput(args, tempFile) {
 await ensureExecutable(HiudyyDLPath);
 return new Promise((resolve, reject) => {
-execFile(HiudyyDLPath, args, (err, stdout, stderr) => {
+execFile(HiudyyDLPath, args, async (err, stdout, stderr) => {
 if (err) {
 if (HiudyyDLPath.includes('hiudyydl_py')) {
-execFile('python', [HiudyyDLPath, ...args], (pyErr, pyStdout, pyStderr) => {
+execFile('python', [HiudyyDLPath, ...args], async (pyErr, pyStdout, pyStderr) => {
 if (pyErr) {
+await clearSystemTempDir();
 reject(`Erro ao executar com Python: ${pyStderr || pyErr.message}`);
 } else {
 handleFile(tempFile, resolve, reject);
 }})} else {
+await clearSystemTempDir();
 reject(`Hiudyydl error: ${stderr || err.message}`);
 }} else {
 handleFile(tempFile, resolve, reject);
@@ -142,7 +144,6 @@ handleFile(tempFile, resolve, reject);
 
 
 async function ytmp3(input) {
-  await clearSystemTempDir();
   const url = getVideoUrl(input);
   const output = path.join(tempPath, generateRandomName("m4a"));
   const validCookiePath = await findValidCookie();
@@ -156,7 +157,6 @@ async function ytmp3(input) {
 
 
 async function ytmp4(input) {
-  await clearSystemTempDir();
   const url = getVideoUrl(input);
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
@@ -251,14 +251,18 @@ async function alldl(input) {
     // Executa os downloads
     for (const args of downloadArgsList) {
       await new Promise((resolve, reject) => {
-        execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
+        execFile(HiudyyDLPath, args.concat(url), async (error, stdout, stderr) => {
           if (error) {
             if (HiudyyDLPath.includes("hiudyydl_py")) {
-              execFile("python", [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
-                if (pyErr) return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
+              execFile("python", [HiudyyDLPath, ...args, url], async (pyErr, pyStdout, pyStderr) => {
+                if (pyErr) {
+                await clearSystemTempDir();
+                return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
+                }
                 resolve(pyStdout.trim());
               });
             } else {
+              await clearSystemTempDir();
               return reject(`Hiudyydl error: ${stderr || error.message}`);
             }
           } else {
