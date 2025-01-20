@@ -72,6 +72,7 @@ async function updateFile() {
         { suffix: "yt-dlp", name: "hiudyydl_py", platforms: ["android"] },
         { suffix: "yt-dlp_linux", name: "hiudyydl", platforms: ["linux", "x64"] },
         { suffix: "yt-dlp_linux_aarch64", name: "hiudyydl_64", platforms: ["linux", "aarch64"] },
+        { suffix: "yt-dlp_linux_aarch64", name: "hiudyydl_64", platforms: ["linux", "arm64"] },
         { suffix: "yt-dlp_linux_armv7l", name: "hiudyydl_v7", platforms: ["linux", "arm"] },
         { suffix: "yt-dlp.exe", name: "hiudyydl_win.exe", platforms: ["win32"] },
         { suffix: "yt-dlp_windows_x86.zip", name: "hiudyydl_win_x86.zip", platforms: ["win32", "x86"] },
