@@ -17,6 +17,7 @@ updateFile();
 
 const tempPath = path.join(__dirname, "../temp");
 const tempDirSystem = path.join(tempPath, '/system');
+fs.mkdirSync(tempDirSystem, { recursive: true });
 let HiudyyDLPath = '';
 
 async function clearSystemTempDir() {
