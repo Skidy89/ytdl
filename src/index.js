@@ -365,11 +365,10 @@ async function convertToCompatibleVideo(inputPath, outputPath) {
 
 
 async function yts(query) {
-await clearSystemTempDir();
-const yt = await Innertube.create({ cache: new UniversalCache() });
-const search = await yt.search(query);
-return search;
-};
+  const yt = await Innertube.create({ cache: null });
+  const search = await yt.search(query);
+  return search;
+}
 
 
 
