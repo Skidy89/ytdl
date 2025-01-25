@@ -160,7 +160,7 @@ async function ytmp3(input) {
   const output = path.join(tempPath, generateRandomName("m4a"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "worstaudio", "--temp-dir", tempDirSystem, "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "worstaudio", "--no-cache-dir", "--no-part", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };
@@ -173,7 +173,7 @@ async function ytmp4(input) {
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bestvideo+worstaudio[ext=mp4]/mp4", "--temp-dir", tempDirSystem, "--cookies", validCookiePath, "-o", output, url];
+  const args = ["--no-cache-dir", "-f", "bestvideo+worstaudio[ext=mp4]/mp4", "--no-cache-dir", "--no-part", "--cookies", validCookiePath, "-o", output, url];
   
   return await processOutput(args, output);
 };
@@ -212,7 +212,7 @@ async function alldl(input) {
 
     // Vídeo + Áudio com qualidade média
     if (hasVideo || !hasAudio) {
-      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+worstaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings", "--temp-dir", tempDirSystem]);
+      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+worstaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings", "--no-cache-dir", "--no-part"]);
     }
 
     // Áudio com qualidade mais baixa e rápido
@@ -228,7 +228,7 @@ async function alldl(input) {
         "--no-warnings",
         "--socket-timeout", "10",
         "--concurrent-fragments", "16",
-        "--temp-dir", tempDirSystem,
+        "--no-cache-dir", "--no-part",
       ]);
     }
 
@@ -244,7 +244,7 @@ async function alldl(input) {
         outputTemplate,
         "--no-warnings",
         "--yes-playlist",
-        "--temp-dir", tempDirSystem,
+        "--no-cache-dir", "--no-part",
       ]);
     }
 
@@ -259,7 +259,7 @@ async function alldl(input) {
         "--output",
         outputTemplate,
         "--no-warnings",
-        "--temp-dir", tempDirSystem,
+        "--no-cache-dir", "--no-part",
       ]);
     }
 
