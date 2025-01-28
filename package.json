@@ -16,7 +16,8 @@
     "os": "latest",
     "unlimited-ai": "latest",
     "node-fetch": "^2.6.11",
-    "gpti": "latest"
+    "gpti": "latest",
+    "@vreden/youtube_scraper": "latest"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

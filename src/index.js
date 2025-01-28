@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const fetch = require('node-fetch');
+const { ytmp3: ytmp3DL, ytmp4: ytmp4DL } = require('@vreden/youtube_scraper');
 
 
 
@@ -157,11 +158,25 @@ async function processOutput(args, tempFile, retries = 3) {
 
 async function ytmp3(input) {
   const url = getVideoUrl(input);
+
+  try {
+    const ytmp3DLResponse = await ytmp3DL(url);
+    if (ytmp3DLResponse?.status && ytmp3DLResponse?.download?.url) {
+      const downloadUrl = ytmp3DLResponse.download.url;
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Erro ao fazer o download do arquivo.");
+      const buffer = await response.buffer();
+      return buffer;
+    }
+  } catch (error) {
+    console.error("Erro na função ytmp3DL:", error);
+  }
+  
+  
   const output = path.join(tempPath, generateRandomName("m4a"));
   const validCookiePath = await findValidCookie();
 
   const args = ["--no-cache-dir", "-f", "worstaudio", "--no-cache-dir", "--no-part", "--cookies", validCookiePath, "-o", output, url];
-  
   return await processOutput(args, output);
 };
 
@@ -170,11 +185,36 @@ async function ytmp3(input) {
 
 async function ytmp4(input) {
   const url = getVideoUrl(input);
+
+  try {
+    const ytmp4DLResponse = await ytmp4DL(url);
+    if (ytmp4DLResponse?.status && ytmp4DLResponse?.download?.url) {
+      const downloadUrl = ytmp4DLResponse.download.url;
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Erro ao fazer o download do arquivo.");
+      const buffer = await response.buffer();
+      return buffer;
+    }
+  } catch (error) {
+    console.error("Erro na função ytmp4DL:", error);
+  }
+  
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bestvideo+worstaudio[ext=mp4]/mp4", "--no-cache-dir", "--no-part", "--cookies", validCookiePath, "-o", output, url];
-  
+  const args = [
+    "--no-cache-dir",
+    "-f",
+    "bestvideo+worstaudio[ext=mp4]/mp4",
+    "--no-cache-dir",
+    "--no-part",
+    "--cookies",
+    validCookiePath,
+    "-o",
+    output,
+    url
+  ];
+
   return await processOutput(args, output);
 };
 
