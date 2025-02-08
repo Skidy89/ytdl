@@ -6,6 +6,8 @@ import path from "path";
 import fs from "fs";
 import os from 'os';
 import fetch from 'node-fetch';
+import { ytmp3: ytmp3DL, ytmp4: ytmp4DL } from '@vreden/youtube_scraper';
+
 
 
 
@@ -16,7 +18,8 @@ updateFile();
 
 
 const tempPath = path.join(__dirname, "../temp");
-const tempDirSystem = os.tmpdir();
+const tempDirSystem = path.join(tempPath, '/system');
+fs.mkdirSync(tempDirSystem, { recursive: true });
 let HiudyyDLPath = '';
 
 async function clearSystemTempDir() {
@@ -121,34 +124,60 @@ detectSystemInfo((error, architecture, platform) => {
 
 
 
-async function processOutput(args, tempFile) {
-await ensureExecutable(HiudyyDLPath);
-return new Promise((resolve, reject) => {
-execFile(HiudyyDLPath, args, (err, stdout, stderr) => {
-if (err) {
-if (HiudyyDLPath.includes('hiudyydl_py')) {
-execFile('python', [HiudyyDLPath, ...args], (pyErr, pyStdout, pyStderr) => {
-if (pyErr) {
-reject(`Erro ao executar com Python: ${pyStderr || pyErr.message}`);
-} else {
-handleFile(tempFile, resolve, reject);
-}})} else {
-reject(`Hiudyydl error: ${stderr || err.message}`);
-}} else {
-handleFile(tempFile, resolve, reject);
-}})})};
+async function processOutput(args, tempFile, retries = 3) {
+  await ensureExecutable(HiudyyDLPath);
+
+  const tryExecution = (attempt) =>
+    new Promise((resolve, reject) => {
+      execFile(HiudyyDLPath, args, async (err, stdout, stderr) => {
+        if (err) {
+          if (HiudyyDLPath.includes('hiudyydl_py')) {
+            execFile('python', [HiudyyDLPath, ...args], async (pyErr, pyStdout, pyStderr) => {
+              if (pyErr) {
+                await clearSystemTempDir();
+                reject(`Erro ao executar com Python após ${retries} tentativas: ${pyStderr || pyErr.message}`);
+              } else {
+                handleFile(tempFile, resolve, reject);
+              }
+            });
+          } else {
+            await clearSystemTempDir();
+            reject(`Hiudyydl error após ${retries} tentativas: ${stderr || err.message}`);
+          }
+        } else {
+          handleFile(tempFile, resolve, reject);
+        }
+      });
+    });
+
+  return tryExecution(1);
+}
+
 
 
 
 
 async function ytmp3(input) {
-  await clearSystemTempDir();
   const url = getVideoUrl(input);
+
+  try {
+    const ytmp3DLResponse = await ytmp3DL(url);
+    if (ytmp3DLResponse?.status && ytmp3DLResponse?.download?.url) {
+      const downloadUrl = ytmp3DLResponse.download.url;
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Erro ao fazer o download do arquivo.");
+      const buffer = await response.buffer();
+      return buffer;
+    }
+  } catch (error) {
+    console.error("Erro na função ytmp3DL:", error);
+  }
+  
+  
   const output = path.join(tempPath, generateRandomName("m4a"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "worstaudio", "--cookies", validCookiePath, "-o", output, url];
-  
+  const args = ["--no-cache-dir", "-f", "worstaudio", "--no-cache-dir", "--no-part", "--cookies", validCookiePath, "-o", output, url];
   return await processOutput(args, output);
 };
 
@@ -156,13 +185,37 @@ async function ytmp3(input) {
 
 
 async function ytmp4(input) {
-  await clearSystemTempDir();
   const url = getVideoUrl(input);
+
+  try {
+    const ytmp4DLResponse = await ytmp4DL(url);
+    if (ytmp4DLResponse?.status && ytmp4DLResponse?.download?.url) {
+      const downloadUrl = ytmp4DLResponse.download.url;
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Erro ao fazer o download do arquivo.");
+      const buffer = await response.buffer();
+      return buffer;
+    }
+  } catch (error) {
+    console.error("Erro na função ytmp4DL:", error);
+  }
+  
   const output = path.join(tempPath, generateRandomName("mp4"));
   const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "bestvideo+worstaudio[ext=mp4]/mp4", "--cookies", validCookiePath, "-o", output, url];
-  
+  const args = [
+    "--no-cache-dir",
+    "-f",
+    "bestvideo+worstaudio[ext=mp4]/mp4",
+    "--no-cache-dir",
+    "--no-part",
+    "--cookies",
+    validCookiePath,
+    "-o",
+    output,
+    url
+  ];
+
   return await processOutput(args, output);
 };
 
@@ -200,7 +253,7 @@ async function alldl(input) {
 
     // Vídeo + Áudio com qualidade média
     if (hasVideo || !hasAudio) {
-      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+worstaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings"]);
+      downloadArgsList.push(["--no-cache-dir", "-f", "bestvideo+worstaudio/best", "--merge-output-format", "mp4", "--cookies", validCookiePath, "--output", outputTemplate, "--no-warnings", "--no-cache-dir", "--no-part"]);
     }
 
     // Áudio com qualidade mais baixa e rápido
@@ -216,6 +269,7 @@ async function alldl(input) {
         "--no-warnings",
         "--socket-timeout", "10",
         "--concurrent-fragments", "16",
+        "--no-cache-dir", "--no-part",
       ]);
     }
 
@@ -231,6 +285,7 @@ async function alldl(input) {
         outputTemplate,
         "--no-warnings",
         "--yes-playlist",
+        "--no-cache-dir", "--no-part",
       ]);
     }
 
@@ -245,28 +300,44 @@ async function alldl(input) {
         "--output",
         outputTemplate,
         "--no-warnings",
+        "--no-cache-dir", "--no-part",
       ]);
     }
 
     // Executa os downloads
     for (const args of downloadArgsList) {
-      await new Promise((resolve, reject) => {
-        execFile(HiudyyDLPath, args.concat(url), (error, stdout, stderr) => {
-          if (error) {
-            if (HiudyyDLPath.includes("hiudyydl_py")) {
-              execFile("python", [HiudyyDLPath, ...args, url], (pyErr, pyStdout, pyStderr) => {
-                if (pyErr) return reject(`Hiudyydl error: ${pyStderr || pyErr.message}`);
-                resolve(pyStdout.trim());
-              });
-            } else {
-              return reject(`Hiudyydl error: ${stderr || error.message}`);
-            }
+  try {
+    await new Promise((resolve, reject) => {
+      execFile(HiudyyDLPath, args.concat(url), async (error, stdout, stderr) => {
+        if (error) {
+          if (HiudyyDLPath.includes("hiudyydl_py")) {
+            execFile("python", [HiudyyDLPath, ...args, url], async (pyErr, pyStdout, pyStderr) => {
+              if (pyErr) {
+                await clearSystemTempDir();
+                return reject(`Hiudyydl error (Python): ${pyStderr || pyErr.message}`);
+              }
+              resolve(pyStdout.trim());
+            });
           } else {
-            resolve(stdout.trim());
+            await clearSystemTempDir();
+            return reject(`Hiudyydl error: ${stderr || error.message}`);
           }
-        });
+        } else {
+          resolve(stdout.trim());
+        }
       });
-    }
+    });
+
+    // Se não houver erro, marca como sucesso
+    console.log(`Execução bem-sucedida para args: ${args}`);
+  } catch (err) {
+    console.log(`Falha ao executar para args: ${args}. Erro: ${err}`);
+    await clearSystemTempDir();
+    console.error(`Erro após falha para args: ${args}.`);
+    throw new Error(err); // Relança o erro imediatamente
+  }
+}
+
 
     // Processa os arquivos baixados
     const files = fs.readdirSync(tempPathDl);
@@ -335,11 +406,11 @@ async function convertToCompatibleVideo(inputPath, outputPath) {
 
 
 async function yts(query) {
-await clearSystemTempDir();
-const yt = await Innertube.create({ cache: new UniversalCache() });
-const search = await yt.search(query);
-return search;
-};
+  const yt = await Innertube.create({ cache: null });
+  const search = await yt.search(query);
+  return search;
+}
+;
 
 
 

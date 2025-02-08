@@ -1,6 +1,6 @@
 {
   "name": "@hiudyy/ytdl",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Universal Audio and Video Downloader: Download content effortlessly from YouTube, social media platforms, and various streaming sites.",
   "main": "src/index.js",
   "module": "src/index.mjs",
@@ -17,7 +17,7 @@
     "unlimited-ai": "latest",
     "node-fetch": "^2.6.11",
     "gpti": "latest",
-    "@vreden/youtube_scraper": "latest"
+    "axios": "latest"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

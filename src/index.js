@@ -6,8 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const fetch = require('node-fetch');
-const { ytmp3: ytmp3DL, ytmp4: ytmp4DL } = require('@vreden/youtube_scraper');
-
+const axios = require('axios');
 
 
 
@@ -155,69 +154,100 @@ async function processOutput(args, tempFile, retries = 3) {
 
 
 
+const formatAudio = ['mp3', 'm4a', 'webm', 'acc', 'flac', 'opus', 'ogg', 'wav'];
+const formatVideo = ['360', '480', '720', '1080', '1440', '4k'];
+
+async function cekProgress(id) {
+    const config = {
+        method: 'GET',
+        url: `https://p.oceansaver.in/ajax/progress.php?id=${id}`,
+        headers: {
+            'User -Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Connection': 'keep-alive',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    };
+
+    while (true) {
+        const response = await axios.request(config);
+        if (response.data && response.data.success && response.data.progress === 1000) {
+            return response.data.download_url;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
+async function ytdlv2(url, format) {
+    if (!formatAudio.includes(format) && !formatVideo.includes(format)) {
+        throw new Error('Formato inválido');
+    }
+
+    const config = {
+        method: 'GET',
+        url: `https://p.oceansaver.in/ajax/download.php?format=${format}&url=${encodeURIComponent(url)}&api=dfcb6d76f2f6a9894gjkege8a4ab232222`,
+        headers: {
+            'User -Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Connection': 'keep-alive',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    };
+
+    const response = await axios.request(config);
+
+    if (response.data && response.data.success) {
+        const { id, title, info } = response.data;
+        const { image } = info;
+
+        const downloadUrl = await cekProgress(id);
+
+        return {
+            id: id,
+            image: image,
+            title: title,
+            downloadUrl: downloadUrl
+        };
+    }
+
+    throw new Error('Falha ao buscar detalhes do vídeo');
+}
 
 async function ytmp3(input) {
-  const url = getVideoUrl(input);
+    const url = getVideoUrl(input);
+    const format = 'm4a';
 
-  try {
-    const ytmp3DLResponse = await ytmp3DL(url);
-    if (ytmp3DLResponse?.status && ytmp3DLResponse?.download?.url) {
-      const downloadUrl = ytmp3DLResponse.download.url;
-      const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error("Erro ao fazer o download do arquivo.");
-      const buffer = await response.buffer();
-      return buffer;
+    try {
+        const ytdlResponse = await ytdlv2(url, format);
+        if (ytdlResponse?.downloadUrl) {
+            const response = await axios.get(ytdlResponse.downloadUrl, { responseType: 'arraybuffer' });
+            if (response.status !== 200) throw new Error("Erro ao fazer o download do arquivo.");
+            return Buffer.from(response.data);
+        }
+    } catch (error) {
+        console.error("Erro na função ytdlv2:", error);
     }
-  } catch (error) {
-    console.error("Erro na função ytmp3DL:", error);
-  }
-  
-  
-  const output = path.join(tempPath, generateRandomName("m4a"));
-  const validCookiePath = await findValidCookie();
 
-  const args = ["--no-cache-dir", "-f", "worstaudio", "--no-cache-dir", "--no-part", "--cookies", validCookiePath, "-o", output, url];
-  return await processOutput(args, output);
-};
-
-
-
+    throw new Error("Falha ao baixar o arquivo.");
+}
 
 async function ytmp4(input) {
-  const url = getVideoUrl(input);
+    const url = getVideoUrl(input);
+    const format = '480';
 
-  try {
-    const ytmp4DLResponse = await ytmp4DL(url);
-    if (ytmp4DLResponse?.status && ytmp4DLResponse?.download?.url) {
-      const downloadUrl = ytmp4DLResponse.download.url;
-      const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error("Erro ao fazer o download do arquivo.");
-      const buffer = await response.buffer();
-      return buffer;
+    try {
+        const ytdlResponse = await ytdlv2(url, format);
+        if (ytdlResponse?.downloadUrl) {
+            const response = await axios.get(ytdlResponse.downloadUrl, { responseType: 'arraybuffer' });
+            if (response.status !== 200) throw new Error("Erro ao fazer o download do arquivo.");
+            return Buffer.from(response.data);
+        }
+    } catch (error) {
+        console.error("Erro na função ytdlv2:", error);
     }
-  } catch (error) {
-    console.error("Erro na função ytmp4DL:", error);
-  }
-  
-  const output = path.join(tempPath, generateRandomName("mp4"));
-  const validCookiePath = await findValidCookie();
 
-  const args = [
-    "--no-cache-dir",
-    "-f",
-    "bestvideo+worstaudio[ext=mp4]/mp4",
-    "--no-cache-dir",
-    "--no-part",
-    "--cookies",
-    validCookiePath,
-    "-o",
-    output,
-    url
-  ];
-
-  return await processOutput(args, output);
-};
-
+    throw new Error("Falha ao baixar o arquivo.");
+}
 
 
 
