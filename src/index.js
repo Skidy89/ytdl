@@ -233,7 +233,7 @@ async function ytmp3(input) {
 
 async function ytmp4(input) {
     const url = getVideoUrl(input);
-    const format = '480';
+    const format = '360';
 
     try {
         const ytdlResponse = await ytdlv2(url, format);
