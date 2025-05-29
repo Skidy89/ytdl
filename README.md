@@ -95,14 +95,21 @@ _2. Download YouTube video (**ytmp4**)_
 This function downloads the video from a YouTube link.
 
 ```javascript
+const fs = require("fs");
 const { ytmp4 } = require("@hiudyy/ytdl");
 //import { ytmp4 } from '@hiudyy/ytdl';
 
 (async () => {
     const url = "https://www.youtube.com/watch?v=vx2u5uUu3DE";
-    const video = await ytmp4(url);
-    
-    console.log("Video download completed:", video);
+    const videoStream = await ytmp4(url);
+
+    // Save to file
+    const writeStream = fs.createWriteStream("video.mp4");
+    await pipeline(videoStream, writeStream)
+
+    writeStream.on("finish", () => {
+        console.log("Video download completed: video.mp4");
+    });
 })();
 ```
 
@@ -114,14 +121,22 @@ _3. Download audio from YouTube (**ytmp3**)_
 This function downloads only the audio from a YouTube video.
 
 ```javascript
+const fs = require("fs");
 const { ytmp3 } = require("@hiudyy/ytdl");
 //import { ytmp3 } from '@hiudyy/ytdl';
 
 (async () => {
     const url = "https://www.youtube.com/watch?v=vx2u5uUu3DE";
-    const audio = await ytmp3(url);
-    
-    console.log("Audio download completed:", audio);
+    const audioStream = await ytmp3(url);
+
+    // Save to file
+    const writeStream = fs.createWriteStream("audio.m4a");
+    await pipeline(audioStream, writeStream)
+
+
+    writeStream.on("finish", () => {
+        console.log("Audio download completed: audio.m4a");
+    });
 })();
 ```
 

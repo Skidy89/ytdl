@@ -1,11 +1,9 @@
-const { detectSystemInfo, generateRandomName, getYouTubeID, ensureExecutable, handleFile, getVideoUrl, updateFile } = require('./../dist/utils.js');
-const { Innertube, UniversalCache } = require("youtubei.js");
+const { detectSystemInfo, ensureExecutable, handleFile, getVideoUrl, updateFile } = require('./../dist/utils.js');
+const { Innertube } = require("youtubei.js");
 const { execFile, exec } = require("child_process");
 const ai = require('./ia/index.js');
 const path = require("path");
 const fs = require("fs");
-const os = require("os");
-const fetch = require('node-fetch');
 const axios = require('axios');
 
 
@@ -122,57 +120,22 @@ detectSystemInfo((error, architecture, platform) => {
 
 
 
-async function processOutput(args, tempFile, retries = 3) {
-  await ensureExecutable(HiudyyDLPath);
-
-  const tryExecution = (attempt) =>
-    new Promise((resolve, reject) => {
-      execFile(HiudyyDLPath, args, async (err, stdout, stderr) => {
-        if (err) {
-          if (HiudyyDLPath.includes('hiudyydl_py')) {
-            execFile('python', [HiudyyDLPath, ...args], async (pyErr, pyStdout, pyStderr) => {
-              if (pyErr) {
-                await clearSystemTempDir();
-                reject(`Erro ao executar com Python após ${retries} tentativas: ${pyStderr || pyErr.message}`);
-              } else {
-                handleFile(tempFile, resolve, reject);
-              }
-            });
-          } else {
-            await clearSystemTempDir();
-            reject(`Hiudyydl error após ${retries} tentativas: ${stderr || err.message}`);
-          }
-        } else {
-          handleFile(tempFile, resolve, reject);
-        }
-      });
-    });
-
-  return tryExecution(1);
-}
-
-
-
-
 const formatAudio = ['mp3', 'm4a', 'webm', 'acc', 'flac', 'opus', 'ogg', 'wav'];
 const formatVideo = ['360', '480', '720', '1080', '1440', '4k'];
 
 async function cekProgress(id) {
-    const config = {
-        method: 'GET',
-        url: `https://p.oceansaver.in/ajax/progress.php?id=${id}`,
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'application/json, text/plain, */*',
-            'Connection': 'keep-alive',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+    const url = `https://p.oceansaver.in/ajax/progress.php?id=${id}`;
+    const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Connection': 'keep-alive',
+        'X-Requested-With': 'XMLHttpRequest'
     };
 
     while (true) {
-        const response = await axios.request(config);
-        if (response.data && response.data.success && response.data.progress === 1000) {
-            return response.data.download_url;
+        const response = await got.get(url, { headers }).json();
+        if (response?.success && response.progress === 1000) {
+            return response.download_url;
         }
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
@@ -218,17 +181,13 @@ async function ytmp3(input) {
     const format = 'm4a';
 
     try {
-        const ytdlResponse = await ytdlv2(url, format);
-        if (ytdlResponse?.downloadUrl) {
-            const response = await axios.get(ytdlResponse.downloadUrl, { responseType: 'arraybuffer' });
-            if (response.status !== 200) throw new Error("Erro ao fazer o download do arquivo.");
-            return Buffer.from(response.data);
-        }
+        const { downloadUrl } = await ytdlv2(url, format);
+        const stream = await got.stream(downloadUrl)
+        return stream
     } catch (error) {
         console.error("Erro na função ytdlv2:", error);
+        throw new Error("Falha ao baixar o arquivo.");
     }
-
-    throw new Error("Falha ao baixar o arquivo.");
 }
 
 async function ytmp4(input) {
@@ -236,17 +195,13 @@ async function ytmp4(input) {
     const format = '360';
 
     try {
-        const ytdlResponse = await ytdlv2(url, format);
-        if (ytdlResponse?.downloadUrl) {
-            const response = await axios.get(ytdlResponse.downloadUrl, { responseType: 'arraybuffer' });
-            if (response.status !== 200) throw new Error("Erro ao fazer o download do arquivo.");
-            return Buffer.from(response.data);
-        }
+        const { downloadUrl } = await ytdlv2(url, format);
+        const stream = await got.stream(downloadUrl)
+        return stream;
     } catch (error) {
         console.error("Erro na função ytdlv2:", error);
+        throw new Error("Falha ao baixar o arquivo.");
     }
-
-    throw new Error("Falha ao baixar o arquivo.");
 }
 
 
